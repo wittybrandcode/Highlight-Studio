@@ -1,0 +1,515 @@
+:root {
+    --bg: #232323;
+    --surface: #2b2b2b;
+    --input: #1c1c1c;
+    --border: #3a3a3a;
+    --border-soft: #333333;
+    --accent: #0d99ff;
+    --accent-hover: #2aa8ff;
+    --accent-dim: rgba(13, 153, 255, 0.14);
+    --text: #e8e8e8;
+    --muted: #9a9a9a;
+    --danger: #e05252;
+    --success: #4caf7d;
+    --radius: 5px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    font-size: 11px;
+    color: var(--text);
+}
+
+body {
+    background: var(--bg);
+    padding: 8px;
+    user-select: none;
+    overflow-x: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+/* ---------- Header ---------- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0 7px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--accent-dim);
+    color: var(--accent);
+}
+
+.brand-icon svg {
+    width: 13px;
+    height: 13px;
+}
+
+.header h3 {
+    font-size: 12.5px;
+    font-weight: 650;
+    letter-spacing: 0.1px;
+}
+
+.badge {
+    background: #3d3d3d;
+    color: #ffd60a;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* ---------- Sections ---------- */
+.section-title {
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 650;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ---------- Presets ---------- */
+.presets-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.preset-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 2px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.preset-btn .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.preset-btn:hover {
+    background: #343434;
+}
+
+.preset-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+}
+
+/* ---------- Color Scope Selector ---------- */
+.scope-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2px;
+}
+
+.segmented-control {
+    display: flex;
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2px;
+    gap: 3px;
+}
+
+.scope-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.scope-btn svg {
+    flex-shrink: 0;
+}
+
+.scope-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.scope-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.scope-btn.active svg {
+    stroke: #ffffff;
+}
+
+/* ---------- Form ---------- */
+.form-row {
+    display: flex;
+    gap: 6px;
+}
+
+.form-row .col {
+    flex: 1;
+    min-width: 0;
+}
+
+.color-col {
+    flex: 0 0 38%;
+}
+
+label {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+input[type="number"],
+select {
+    width: 100%;
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px 6px;
+    outline: none;
+    color: var(--text);
+}
+
+input[type="number"]:focus,
+select:focus {
+    border-color: var(--accent);
+}
+
+select {
+    cursor: pointer;
+}
+
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--input);
+    border: 1px solid var(--border);
+    padding: 3px 6px;
+    border-radius: var(--radius);
+}
+
+input[type="color"] {
+    border: none;
+    width: 22px;
+    height: 18px;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+}
+
+#color-hex {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+}
+
+/* ---------- Switch ---------- */
+.anim-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding-top: 1px;
+}
+
+.anim-label {
+    margin: 0;
+    color: var(--text);
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.switch input {
+    display: none;
+}
+
+.switch .track {
+    display: inline-flex;
+    align-items: center;
+    width: 28px;
+    height: 16px;
+    border-radius: 9px;
+    background: #4a4a4a;
+    padding: 2px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.switch .thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s;
+}
+
+.switch input:checked + .track {
+    background: var(--accent);
+}
+
+.switch input:checked + .track .thumb {
+    transform: translateX(12px);
+}
+
+/* ---------- Mini Switch ---------- */
+.anim-sub-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    margin-bottom: 5px;
+}
+
+.anim-sub-label {
+    margin: 0;
+    color: #b5b5b5;
+    font-size: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.switch-sm .track {
+    width: 22px;
+    height: 13px;
+    border-radius: 7px;
+    padding: 1.5px;
+}
+
+.switch-sm .thumb {
+    width: 10px;
+    height: 10px;
+}
+
+.switch-sm input:checked + .track .thumb {
+    transform: translateX(9px);
+}
+
+#anim-controls.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* ---------- Actions ---------- */
+.actions-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-top: 2px;
+}
+
+.actions-row {
+    display: flex;
+    gap: 5px;
+}
+
+button {
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+button svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.primary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+}
+
+.primary-btn:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.primary-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.action-hint {
+    text-align: center;
+    font-size: 9.5px;
+    color: var(--muted);
+    margin-top: 4px;
+    user-select: none;
+    letter-spacing: 0.1px;
+}
+
+.secondary-btn,
+.ghost-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: 1;
+    padding: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.secondary-btn:hover {
+    background: #383838;
+    border-color: #4a4a4a;
+}
+
+.ghost-btn {
+    color: var(--danger);
+}
+
+.ghost-btn:hover {
+    border-color: var(--danger);
+    background: rgba(224, 82, 82, 0.08);
+}
+
+/* ---------- Status ---------- */
+.status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding-top: 2px;
+    font-size: 10px;
+    color: var(--muted);
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+}
+
+.status-bar.error .status-dot {
+    background: var(--danger);
+}
+
+.status-bar.error #status-text {
+    color: var(--danger);
+}
+
+/* ---------- Debug Console ---------- */
+.debug-section {
+    margin-top: 4px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 4px;
+}
+
+.debug-toggle {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 9px;
+    padding: 3px 0;
+    text-align: center;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+}
+
+.debug-toggle:hover {
+    color: var(--text);
+}
+
+.debug-panel {
+    margin-top: 4px;
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px;
+}
+
+#debug-log {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 9px;
+    color: #8bc34a;
+    background: none;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 140px;
+    overflow-y: auto;
+    margin: 0 0 4px 0;
+    padding: 0;
+}
+
+.debug-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.debug-btn {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 3px;
+    font-size: 9px;
+    cursor: pointer;
+}
+
+.debug-btn:hover {
+    color: var(--text);
+    border-color: #4a4a4a;
+}

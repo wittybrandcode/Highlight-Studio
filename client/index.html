@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>Highlight-Studio</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="brand">
+                <span class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </span>
+                <h3>Highlight-Studio</h3>
+            </div>
+            <span class="badge">PRO</span>
+        </header>
+
+        <!-- Presets -->
+        <div class="section-title">Presets</div>
+        <div class="presets-grid">
+            <button class="preset-btn active" data-preset="marker"><span class="dot" style="background:#FFE600"></span>Marker</button>
+            <button class="preset-btn" data-preset="clean"><span class="dot" style="background:#0D99FF"></span>Clean</button>
+            <button class="preset-btn" data-preset="caption"><span class="dot" style="background:#FF4081"></span>Caption</button>
+        </div>
+
+        <!-- Color Target Scope (كل الأسطر vs السطر المحدد) -->
+        <div class="scope-container">
+            <div class="segmented-control" id="color-scope">
+                <button type="button" class="scope-btn active" id="btn-scope-all" data-scope="all" title="Apply color to all lines (Master Highlight)">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+                    All Lines (الكل)
+                </button>
+                <button type="button" class="scope-btn" id="btn-scope-line" data-scope="line" title="Apply color to selected line only">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1" stroke-dasharray="2 2"/><rect x="3" y="10" width="18" height="4" rx="1" fill="currentColor"/><rect x="3" y="16" width="18" height="4" rx="1" stroke-dasharray="2 2"/></svg>
+                    Selected Line (السطر المحدد)
+                </button>
+            </div>
+        </div>
+
+        <!-- Color + Alignment -->
+        <div class="form-row">
+            <div class="col color-col">
+                <label for="color-picker">Color</label>
+                <div class="color-picker-wrapper">
+                    <input type="color" id="color-picker" value="#FFE600">
+                    <span id="color-hex">#FFE600</span>
+                </div>
+            </div>
+            <div class="col align-col">
+                <label for="align-select">Alignment</label>
+                <select id="align-select">
+                    <option value="auto" selected>Auto (Arabic / Latin)</option>
+                    <option value="ltr">Left (LTR)</option>
+                    <option value="rtl">Right (RTL)</option>
+                    <option value="center">Center</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="form-row">
+            <div class="col">
+                <label for="pad-x">Pad X</label>
+                <input type="number" id="pad-x" value="8" min="0" max="100">
+            </div>
+            <div class="col">
+                <label for="pad-y">Pad Y</label>
+                <input type="number" id="pad-y" value="2" min="0" max="100">
+            </div>
+            <div class="col">
+                <label for="roundness">Radius</label>
+                <input type="number" id="roundness" value="2" min="0" max="50">
+            </div>
+        </div>
+
+        <!-- Animation -->
+        <div class="anim-header">
+            <label class="switch">
+                <input type="checkbox" id="anim-check" checked>
+                <span class="track"><span class="thumb"></span></span>
+            </label>
+            <label for="anim-check" class="anim-label">Write-on animation</label>
+        </div>
+
+        <div id="anim-controls">
+            <div class="anim-sub-header">
+                <label class="switch switch-sm">
+                    <input type="checkbox" id="sequential-check" checked>
+                    <span class="track"><span class="thumb"></span></span>
+                </label>
+                <label for="sequential-check" class="anim-sub-label" title="Each line starts moving immediately when the previous line ends">
+                    Sequential flow (تتابع متصل)
+                </label>
+            </div>
+
+            <div class="form-row">
+                <div class="col">
+                    <label for="line-dur">Speed (s)</label>
+                    <input type="number" id="line-dur" value="0.35" step="0.05" min="0.05">
+                </div>
+                <div class="col" id="stagger-col">
+                    <label for="stagger" id="stagger-label">Gap (s)</label>
+                    <input type="number" id="stagger" value="0.00" step="0.02" min="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-group">
+            <button id="btn-smart-apply" class="primary-btn" title="Click: Apply / Update Highlight (Alt+Click or Right-Click: Clear)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                <span id="btn-label">Apply / Update Highlight</span>
+            </button>
+            <div class="action-hint">Click: Apply / Update &nbsp;&bull;&nbsp; Alt+Click: Clear</div>
+        </div>
+
+        <div id="status-bar" class="status-bar"><span class="status-dot"></span><span id="status-text">Ready</span></div>
+
+        <!-- Debug Console -->
+        <div class="debug-section">
+            <button id="btn-debug" class="debug-toggle">&#9881; Debug Console</button>
+            <div id="debug-panel" class="debug-panel" style="display:none;">
+                <pre id="debug-log">No logs yet.</pre>
+                <div class="debug-actions">
+                    <button id="btn-refresh-log" class="debug-btn">Refresh</button>
+                    <button id="btn-clear-log" class="debug-btn">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/CSInterface.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
