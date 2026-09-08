@@ -524,11 +524,17 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* Mini Switch */
+.anim-sub-toggles {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
 .anim-sub-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 5px;
+    gap: 5px;
 }
 
 .anim-sub-label {
@@ -571,6 +577,11 @@ input[type="color"]::-webkit-color-swatch {
 
 #anim-controls.disabled {
     opacity: 0.25;
+    pointer-events: none;
+}
+
+.ctrl-field.disabled {
+    opacity: 0.35;
     pointer-events: none;
 }
 

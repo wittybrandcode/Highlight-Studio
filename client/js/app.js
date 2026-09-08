@@ -15,12 +15,27 @@ var statusText = document.getElementById("status-text");
 var animControls = document.getElementById("anim-controls");
 var sequentialCheck = document.getElementById("sequential-check");
 var staggerLabel = document.getElementById("stagger-label");
+var outroCheck = document.getElementById("outro-check");
+var outTimeInput = document.getElementById("out-time");
+var outTimeCol = document.getElementById("out-time-col");
 
 function syncAnimState() {
     animControls.classList.toggle("disabled", !animCheck.checked);
 }
 animCheck.addEventListener("change", syncAnimState);
 syncAnimState();
+
+function syncOutroState() {
+    if (!outroCheck || !outTimeInput) return;
+    outTimeInput.disabled = !outroCheck.checked;
+    if (outTimeCol) {
+        outTimeCol.classList.toggle("disabled", !outroCheck.checked);
+    }
+}
+if (outroCheck) {
+    outroCheck.addEventListener("change", syncOutroState);
+    syncOutroState();
+}
 
 function syncSequentialState() {
     if (!sequentialCheck) return;
@@ -167,6 +182,7 @@ function hexToRgbaArray(hex) {
 // Build the unified settings payload
 function getPayload() {
     var isSequential = sequentialCheck ? sequentialCheck.checked : true;
+    var isOutro = outroCheck ? outroCheck.checked : false;
     return {
         direction: alignSelect.value,
         color: hexToRgbaArray(colorPicker.value),
@@ -175,7 +191,9 @@ function getPayload() {
         roundness: parseFloat(roundInput.value) || 0,
         animate: animCheck.checked,
         sequential: isSequential,
+        outro: isOutro,
         lineDuration: parseFloat(lineDurInput.value) || 0.35,
+        outTime: outTimeInput ? (parseFloat(outTimeInput.value) || 1.5) : 1.5,
         stagger: parseFloat(staggerInput.value) || 0
     };
 }

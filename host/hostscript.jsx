@@ -677,7 +677,7 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
             xform.property("ADBE Anchor Point").expression = "parent.transform.anchorPoint;";
             xform.property("ADBE Scale").setValue([100, 100]);
             xform.property("ADBE Rotate Z").setValue(0);
-            shapeLayer.blendingMode = BlendingMode.MULTIPLY;
+            shapeLayer.blendingMode = BlendingMode.NORMAL;
 
             // استرجاع أي تخصيص محلي سابق لهذا السطر (إن وجد) لحفظ التعديلات الخاصة بكل سطر
             var prevSnap = (prevBoxes && k < prevBoxes.length) ? prevBoxes[k] : null;
@@ -708,6 +708,8 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
             if (data.animate) {
                 var lineDur = (data.lineDuration && data.lineDuration > 0) ? data.lineDuration : 0.35;
                 var gapOrStagger = (typeof data.stagger === "number" && !isNaN(data.stagger)) ? data.stagger : 0;
+                var hasOutro = !!data.outro;
+                var holdTime = (typeof data.outTime === "number" && data.outTime > 0) ? data.outTime : 1.5;
                 var t1, t2;
 
                 if (data.sequential) {
@@ -720,6 +722,7 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                     t2 = t1 + lineDur;
                 }
 
+                // حركة الدخول: من 0 إلى 100
                 progFx.property("Slider").setValueAtTime(t1, 0);
                 progFx.property("Slider").setValueAtTime(t2, 100);
 
@@ -727,6 +730,18 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                 var easeOut = new KeyframeEase(0, 65);
                 progFx.property("Slider").setTemporalEaseAtKey(1, [easeIn], [easeOut]);
                 progFx.property("Slider").setTemporalEaseAtKey(2, [easeIn], [easeOut]);
+
+                // حركة الخروج (اختيارية): من 100 إلى 0 بعد انقضاء زمن البقاء holdTime
+                if (hasOutro) {
+                    var t3 = t2 + holdTime;
+                    var t4 = t3 + lineDur;
+
+                    progFx.property("Slider").setValueAtTime(t3, 100);
+                    progFx.property("Slider").setValueAtTime(t4, 0);
+
+                    progFx.property("Slider").setTemporalEaseAtKey(3, [easeIn], [easeOut]);
+                    progFx.property("Slider").setTemporalEaseAtKey(4, [easeIn], [easeOut]);
+                }
             } else {
                 progFx.property("Slider").setValue(100);
             }
