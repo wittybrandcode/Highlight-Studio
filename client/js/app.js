@@ -31,7 +31,42 @@ function syncOutroState() {
     if (outTimeCol) {
         outTimeCol.classList.toggle("disabled", !outroCheck.checked);
     }
+    if (btnOutroOrder) {
+        btnOutroOrder.classList.toggle("disabled", !outroCheck.checked);
+    }
 }
+
+// Outro Order (first: 1->N, last: N->1)
+var currentOutroOrder = "first";
+var btnOutroOrder = document.getElementById("btn-outro-order");
+var orderIconFirst = document.getElementById("order-icon-first");
+var orderIconLast = document.getElementById("order-icon-last");
+var orderLabel = document.getElementById("order-label");
+
+function setOutroOrder(order) {
+    currentOutroOrder = order;
+    if (btnOutroOrder) btnOutroOrder.dataset.order = order;
+    if (order === "last") {
+        if (orderIconFirst) orderIconFirst.style.display = "none";
+        if (orderIconLast) orderIconLast.style.display = "inline-flex";
+        if (orderLabel) orderLabel.textContent = "N➔1";
+        if (btnOutroOrder) btnOutroOrder.title = "Exit Order: Last Line First (N➔1). Click to toggle: First Line First (1➔N)";
+        setStatus("Outro: Last Line First (N➔1)");
+    } else {
+        if (orderIconFirst) orderIconFirst.style.display = "inline-flex";
+        if (orderIconLast) orderIconLast.style.display = "none";
+        if (orderLabel) orderLabel.textContent = "1➔N";
+        if (btnOutroOrder) btnOutroOrder.title = "Exit Order: First Line First (1➔N). Click to toggle: Last Line First (N➔1)";
+        setStatus("Outro: First Line First (1➔N)");
+    }
+}
+
+if (btnOutroOrder) {
+    btnOutroOrder.addEventListener("click", function () {
+        setOutroOrder(currentOutroOrder === "first" ? "last" : "first");
+    });
+}
+
 if (outroCheck) {
     outroCheck.addEventListener("change", syncOutroState);
     syncOutroState();
@@ -192,6 +227,7 @@ function getPayload() {
         animate: animCheck.checked,
         sequential: isSequential,
         outro: isOutro,
+        outroOrder: currentOutroOrder,
         lineDuration: parseFloat(lineDurInput.value) || 0.35,
         outTime: outTimeInput ? (parseFloat(outTimeInput.value) || 1.5) : 1.5,
         stagger: parseFloat(staggerInput.value) || 0

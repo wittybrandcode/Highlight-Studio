@@ -185,6 +185,17 @@
                             Outro Exit
                         </label>
                     </div>
+                    <button type="button" class="order-toggle-btn disabled" id="btn-outro-order" data-order="first" title="Exit Order: First Line First (1➔N). Click to toggle: Last Line First (N➔1)">
+                        <span id="order-icon-first">
+                            <!-- Phosphor: SortAscending (Top to bottom) -->
+                            <svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor"><path d="M128,128a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16h72A8,8,0,0,1,128,128ZM48,72h56a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16Zm88,112H48a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16Zm85.66-21.66-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L176,169.37V48a8,8,0,0,1,16,0V169.37l18.34-18.35a8,8,0,0,1,11.32,11.32Z"/></svg>
+                        </span>
+                        <span id="order-icon-last" style="display:none;">
+                            <!-- Phosphor: SortDescending (Bottom to top) -->
+                            <svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor"><path d="M128,128a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16h72A8,8,0,0,1,128,128ZM48,72h88a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16Zm56,112H48a8,8,0,0,0,0,16h56a8,8,0,0,0,0-16Zm109.66-82.34a8,8,0,0,0-11.32,0L192,86.63V208a8,8,0,0,0,16,0V86.63l18.34,18.35a8,8,0,0,0,11.32-11.32l-32-32A8,8,0,0,0,213.66,101.66Z"/></svg>
+                        </span>
+                        <span id="order-label">1➔N</span>
+                    </button>
                 </div>
 
                 <div class="ctrl-row">

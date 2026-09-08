@@ -585,6 +585,42 @@ input[type="color"]::-webkit-color-swatch {
     pointer-events: none;
 }
 
+.order-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #1c1c1c;
+    border: none;
+    padding: 2px 5px;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    margin-left: auto;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.order-toggle-btn:hover {
+    background: #252525;
+    color: var(--text-bright);
+}
+
+.order-toggle-btn:active {
+    background: #2f2f2f;
+}
+
+.order-toggle-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.order-toggle-btn svg {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+}
+
 /* ============================================================
    ACTION BUTTON (Sleek Industrial Dark Graphite)
    ============================================================ */

@@ -733,8 +733,29 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
 
                 // حركة الخروج (اختيارية): من 100 إلى 0 بعد انقضاء زمن البقاء holdTime
                 if (hasOutro) {
-                    var t3 = t2 + holdTime;
-                    var t4 = t3 + lineDur;
+                    var outroOrder = data.outroOrder || "first"; // "first" (1->N) or "last" (N->1)
+
+                    // حساب توقيت اكتمال دخول كافة الأسطر لتبدأ فترة الثبات بعد اكتمال النص بالكامل
+                    var totalEntryFinish;
+                    if (data.sequential) {
+                        totalEntryFinish = startTime + (totalLines * lineDur) + ((totalLines - 1) * gapOrStagger);
+                    } else {
+                        totalEntryFinish = startTime + ((totalLines - 1) * gapOrStagger) + lineDur;
+                    }
+
+                    var exitBaseTime = totalEntryFinish + holdTime;
+
+                    // ترتيب الخروج: السطر الأول أولاً (k) أو السطر الأخير أولاً (totalLines - 1 - k)
+                    var exitIndex = (outroOrder === "last") ? (totalLines - 1 - k) : k;
+
+                    var t3, t4;
+                    if (data.sequential) {
+                        t3 = exitBaseTime + (exitIndex * (lineDur + gapOrStagger));
+                        t4 = t3 + lineDur;
+                    } else {
+                        t3 = exitBaseTime + (exitIndex * gapOrStagger);
+                        t4 = t3 + lineDur;
+                    }
 
                     progFx.property("Slider").setValueAtTime(t3, 100);
                     progFx.property("Slider").setValueAtTime(t4, 0);
