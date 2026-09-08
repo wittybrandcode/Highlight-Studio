@@ -1,56 +1,71 @@
 /* ============================================================
-   Highlight Studio — Premium UI Design System
+   Highlight Studio — Industrial Monochrome Precision System
+   Strict zero border-radius, grayscale palette, minimal borders
    ============================================================ */
 
 :root {
-    /* Core palette */
-    --bg-deep:    #1b1b1f;
-    --bg:         #212125;
-    --surface:    #2a2a2f;
-    --surface-hi: #323238;
-    --input-bg:   #1e1e22;
-    --border:     #38383f;
-    --border-dim: #2e2e34;
-    --accent:     #4c8dff;
-    --accent-hi:  #6ba1ff;
-    --accent-dim: rgba(76, 141, 255, 0.10);
-    --accent-glow:rgba(76, 141, 255, 0.25);
-    --text:       #e4e4e8;
-    --text-sec:   #a1a1aa;
-    --text-dim:   #6e6e78;
-    --danger:     #ef5565;
-    --success:    #36b37e;
-    --warning:    #ffb020;
-    --radius:     3px;
-    --radius-lg:  4px;
-    --transition: 0.14s ease;
+    /* Pure Neutral Grayscale Palette */
+    --bg-base:        #151515;
+    --bg-panel:       #181818;
+    --bg-surface:     #1c1c1c;
+    --bg-surface-hi:  #252525;
+    --bg-input:       #191919;
+    --bg-input-hover: #1f1f1f;
+    --bg-btn:         #212121;
+    --bg-btn-hover:   #2a2a2a;
+    --bg-btn-active:  #181818;
+    
+    /* Control Action Button */
+    --btn-primary-bg:     #262626;
+    --btn-primary-border: #303030;
+    --btn-primary-hover:  #2e2e2e;
+    --btn-primary-active: #1c1c1c;
+    
+    /* Subtle hairlines only where structure requires separation */
+    --line-subtle:   #1f1f1f;
+    --line-contrast: #292929;
+    --line-focus:    #383838;
+
+    /* Soft White & Muted Grayscale Typography */
+    --text-primary:   #bebebe;
+    --text-secondary: #7e7e7e;
+    --text-muted:     #555555;
+    --text-dim:       #404040;
+    --text-bright:    #d2d2d2;
+
+    --transition-fast: 0.1s ease;
 }
 
-/* ---------- Reset ---------- */
+/* ---------- Global Reset & ZERO Radius Enforcement ---------- */
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    border-radius: 0 !important;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
 }
 
 body {
-    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 11px;
-    line-height: 1.4;
-    color: var(--text);
-    background: var(--bg-deep);
-    padding: 0;
+    line-height: 1.35;
+    color: var(--text-primary);
+    background: var(--bg-base);
     user-select: none;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- Container ---------- */
+/* ---------- Main Container ---------- */
 .container {
     display: flex;
     flex-direction: column;
-    gap: 0;
-    padding: 10px 10px 6px;
+    padding: 9px 10px 6px;
+    box-sizing: border-box;
 }
 
 /* ============================================================
@@ -60,72 +75,68 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 0 8px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 7px;
+    margin-bottom: 7px;
+    border-bottom: 1px solid var(--line-subtle);
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
 }
 
 .brand-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--accent-dim), rgba(76, 141, 255, 0.18));
-    border: 1px solid rgba(76, 141, 255, 0.15);
-    color: var(--accent);
+    width: 20px;
+    height: 20px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
 }
 
 .brand-icon svg {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
 }
 
-.header h3 {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: -0.1px;
-    color: var(--text);
+.brand-title {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--text-bright);
 }
 
 .badge {
     font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.8px;
-    padding: 2px 5px;
-    border-radius: 2px;
-    background: rgba(255, 176, 32, 0.12);
-    color: var(--warning);
-    border: 1px solid rgba(255, 176, 32, 0.15);
+    padding: 1px 4px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
 }
 
 /* ============================================================
-   SECTION TITLES
+   SECTION LABELS
    ============================================================ */
-.section-title {
-    font-size: 9px;
+.section-label {
+    font-size: 8.5px;
     font-weight: 700;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.7px;
     text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 5px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
 }
 
 /* ============================================================
    PRESETS
    ============================================================ */
-.presets-grid {
+.presets-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    margin-bottom: 8px;
+    gap: 3px;
+    margin-bottom: 7px;
 }
 
 .preset-btn {
@@ -133,48 +144,52 @@ body {
     align-items: center;
     justify-content: center;
     gap: 5px;
-    background: var(--surface);
-    border: 1px solid var(--border-dim);
-    border-radius: var(--radius);
+    background: var(--bg-surface);
+    border: none;
     padding: 5px 4px;
     font-size: 10px;
-    font-weight: 600;
-    color: var(--text-sec);
+    font-weight: 500;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: all var(--transition);
+    transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.preset-btn .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 2px;
+.preset-btn svg {
+    width: 11px;
+    height: 11px;
     flex-shrink: 0;
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
 }
 
 .preset-btn:hover {
-    background: var(--surface-hi);
-    color: var(--text);
-    border-color: var(--border);
+    background: var(--bg-surface-hi);
+    color: var(--text-bright);
+}
+
+.preset-btn:hover svg {
+    color: var(--text-secondary);
 }
 
 .preset-btn.active {
-    border-color: var(--accent);
-    background: var(--accent-dim);
-    color: var(--text);
+    background: #2b2b2b;
+    color: var(--text-bright);
+}
+
+.preset-btn.active svg {
+    color: var(--text-bright);
 }
 
 /* ============================================================
-   SCOPE SELECTOR (All Lines / Selected Line)
+   SCOPE SELECTOR
    ============================================================ */
-.scope-container {
-    margin-bottom: 8px;
+.scope-row {
+    margin-bottom: 7px;
 }
 
 .segmented-control {
     display: flex;
-    background: var(--input-bg);
-    border: 1px solid var(--border-dim);
-    border-radius: var(--radius);
+    background: #171717;
     padding: 2px;
     gap: 2px;
 }
@@ -187,132 +202,241 @@ body {
     gap: 5px;
     background: transparent;
     border: none;
-    border-radius: 2px;
     padding: 4px 6px;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-dim);
+    font-size: 9.5px;
+    font-weight: 500;
+    color: var(--text-muted);
     cursor: pointer;
-    transition: all var(--transition);
+    transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .scope-btn svg {
     flex-shrink: 0;
-    opacity: 0.6;
-    transition: opacity var(--transition);
+    opacity: 0.65;
+    transition: opacity var(--transition-fast);
 }
 
 .scope-btn:hover {
-    color: var(--text-sec);
-    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .scope-btn:hover svg {
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .scope-btn.active {
-    background: var(--accent);
-    color: #ffffff;
-    box-shadow: 0 1px 4px rgba(76, 141, 255, 0.25);
+    background: #282828;
+    color: var(--text-bright);
 }
 
 .scope-btn.active svg {
-    stroke: #ffffff;
     opacity: 1;
 }
 
 /* ============================================================
-   FORM CONTROLS
+   CONTROL ROWS & FIELDS
    ============================================================ */
-.form-row {
+.ctrl-row {
     display: flex;
-    gap: 5px;
-    margin-bottom: 7px;
+    gap: 4px;
+    margin-bottom: 6px;
 }
 
-.form-row .col {
+.ctrl-field {
     flex: 1;
     min-width: 0;
 }
 
-.color-col { flex: 0 0 40%; }
+.color-field {
+    flex: 0 0 38%;
+}
+
+.dir-field {
+    flex: 1;
+}
 
 label {
     display: flex;
     align-items: center;
     gap: 4px;
     margin-bottom: 3px;
-    font-size: 9.5px;
+    font-size: 8.5px;
     font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+label svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
     color: var(--text-dim);
-    letter-spacing: 0.1px;
 }
 
-label .ph {
-    font-size: 11px;
-    color: var(--text-sec);
+/* ============================================================
+   CUSTOM NUMBER STEPPERS (With Elegant Micro Arrows)
+   ============================================================ */
+.stepper-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    height: 22px;
+    position: relative;
+    border: none;
+    transition: background var(--transition-fast);
 }
 
-input[type="number"],
-select {
-    width: 100%;
-    background: var(--input-bg);
-    border: 1px solid var(--border-dim);
-    border-radius: var(--radius);
-    padding: 4px 6px;
-    font-size: 11px;
+.stepper-box:hover {
+    background: var(--bg-input-hover);
+}
+
+.stepper-box:focus-within {
+    background: #222222;
+    outline: 1px solid var(--line-focus);
+}
+
+.stepper-box input[type="number"] {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    background: transparent;
+    padding: 0 4px 0 6px;
+    font-size: 10.5px;
     font-family: inherit;
-    color: var(--text);
+    color: var(--text-primary);
     outline: none;
-    transition: border-color var(--transition);
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
 }
 
-input[type="number"]:focus,
-select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent-dim);
+/* Hide default browser spinner buttons */
+.stepper-box input[type="number"]::-webkit-inner-spin-button,
+.stepper-box input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
-input[type="number"]:hover,
-select:hover {
-    border-color: var(--border);
+.stepper-arrows {
+    display: flex;
+    flex-direction: column;
+    width: 14px;
+    height: 100%;
+    flex-shrink: 0;
+    background: #1c1c1c;
+    border-left: 1px solid #161616;
 }
 
-select {
+.step-arrow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: background 0.08s ease, color 0.08s ease;
+}
+
+.step-arrow:hover {
+    background: #2b2b2b;
+    color: var(--text-bright);
+}
+
+.step-arrow:active {
+    background: #363636;
+    color: #d8d8d8;
+}
+
+.step-arrow svg {
+    width: 7px;
+    height: 7px;
+    pointer-events: none;
+}
+
+/* ============================================================
+   DIRECTION SELECT (With Caret Icon)
+   ============================================================ */
+.select-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    height: 22px;
+    transition: background var(--transition-fast);
+}
+
+.select-wrap:hover {
+    background: var(--bg-input-hover);
+}
+
+.select-wrap:focus-within {
+    outline: 1px solid var(--line-focus);
+}
+
+.select-wrap select {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    padding: 0 18px 0 6px;
+    font-size: 10px;
+    font-family: inherit;
+    color: var(--text-primary);
+    outline: none;
     cursor: pointer;
     -webkit-appearance: none;
     appearance: none;
-    padding-right: 20px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 256 256'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z' fill='%236e6e78'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 5px center;
 }
 
-/* Color Picker */
+.select-wrap select option {
+    background: #1c1c1c;
+    color: var(--text-primary);
+}
+
+.select-arrow {
+    position: absolute;
+    right: 5px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+}
+
+.select-arrow svg {
+    width: 9px;
+    height: 9px;
+}
+
+/* ============================================================
+   COLOR PICKER
+   ============================================================ */
 .color-picker-wrapper {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: var(--input-bg);
-    border: 1px solid var(--border-dim);
-    padding: 2px 6px;
-    border-radius: var(--radius);
-    transition: border-color var(--transition);
+    background: var(--bg-input);
+    height: 22px;
+    padding: 0 6px;
+    transition: background var(--transition-fast);
 }
 
 .color-picker-wrapper:hover {
-    border-color: var(--border);
+    background: var(--bg-input-hover);
 }
 
 input[type="color"] {
     border: none;
-    width: 20px;
-    height: 16px;
+    width: 13px;
+    height: 13px;
     padding: 0;
     background: none;
     cursor: pointer;
-    border-radius: 2px;
+    flex-shrink: 0;
 }
 
 input[type="color"]::-webkit-color-swatch-wrapper {
@@ -320,80 +444,87 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 }
 
 input[type="color"]::-webkit-color-swatch {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 2px;
+    border: 1px solid #333333;
 }
 
 #color-hex {
-    font-size: 10px;
+    font-size: 9.5px;
     font-variant-numeric: tabular-nums;
-    font-family: "SF Mono", "Consolas", "Monaco", monospace;
-    color: var(--text-sec);
+    font-family: "SF Mono", "Consolas", "Courier New", monospace;
+    color: var(--text-secondary);
     letter-spacing: 0.3px;
 }
 
 /* ============================================================
-   TOGGLE SWITCHES
+   ANIMATION SECTION & RECTANGULAR TOGGLES
    ============================================================ */
-.anim-header {
+.anim-section {
+    border-top: 1px solid var(--line-subtle);
+    padding-top: 6px;
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+.anim-toggle-row {
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 5px 0 2px;
-    margin-bottom: 4px;
-    border-top: 1px solid var(--border-dim);
-    padding-top: 8px;
+    margin-bottom: 5px;
 }
 
 .anim-label {
     margin: 0;
-    color: var(--text);
-    font-size: 10.5px;
-    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 10px;
+    font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
-.anim-label .ph {
-    font-size: 13px;
-    color: var(--accent);
+.anim-label svg {
+    width: 10px;
+    height: 10px;
+    color: var(--text-secondary);
 }
 
-.switch input { display: none; }
+/* Industrial Rectangular Switch */
+.switch input {
+    display: none;
+}
 
 .switch .track {
     display: inline-flex;
     align-items: center;
-    width: 26px;
-    height: 14px;
-    border-radius: 3px;
-    background: #3a3a42;
-    padding: 2px;
+    width: 22px;
+    height: 11px;
+    background: #202020;
+    padding: 1.5px;
     cursor: pointer;
-    transition: background var(--transition);
+    transition: background var(--transition-fast);
 }
 
 .switch .thumb {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    background: #8a8a92;
-    transition: transform var(--transition), background var(--transition);
+    width: 8px;
+    height: 8px;
+    background: #4a4a4a;
+    transition: transform var(--transition-fast), background var(--transition-fast);
 }
 
 .switch input:checked + .track {
-    background: var(--accent);
+    background: #333333;
 }
 
 .switch input:checked + .track .thumb {
-    transform: translateX(12px);
-    background: #ffffff;
+    transform: translateX(11px);
+    background: #a8a8a8;
 }
 
 /* Mini Switch */
-.anim-sub-header {
+.anim-sub-row {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -402,147 +533,136 @@ input[type="color"]::-webkit-color-swatch {
 
 .anim-sub-label {
     margin: 0;
-    color: var(--text-sec);
-    font-size: 10px;
+    color: var(--text-secondary);
+    font-size: 9.5px;
     font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 4px;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
-.anim-sub-label .ph {
-    font-size: 12px;
-    color: var(--text-dim);
+.anim-sub-label svg {
+    width: 10px;
+    height: 10px;
+    color: var(--text-muted);
 }
 
 .switch-sm .track {
-    width: 20px;
-    height: 12px;
-    border-radius: 2px;
-    padding: 1.5px;
+    width: 18px;
+    height: 9px;
+    padding: 1px;
 }
 
 .switch-sm .thumb {
-    width: 9px;
-    height: 9px;
-    border-radius: 2px;
+    width: 7px;
+    height: 7px;
 }
 
 .switch-sm input:checked + .track .thumb {
-    transform: translateX(8px);
+    transform: translateX(9px);
 }
 
 #anim-controls {
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s ease;
 }
 
 #anim-controls.disabled {
-    opacity: 0.3;
+    opacity: 0.25;
     pointer-events: none;
 }
 
 /* ============================================================
-   PRIMARY ACTION BUTTON
+   ACTION BUTTON (Sleek Industrial Dark Graphite)
    ============================================================ */
-.actions-group {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+.action-section {
+    border-top: 1px solid var(--line-subtle);
     padding-top: 6px;
     margin-top: 2px;
-    border-top: 1px solid var(--border-dim);
 }
 
 .primary-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 6px;
     width: 100%;
-    padding: 7px 12px;
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
+    height: 25px;
+    padding: 0 10px;
+    border: 1px solid var(--btn-primary-border);
+    background: var(--btn-primary-bg);
+    color: var(--text-bright);
+    font-size: 10.5px;
+    font-weight: 600;
     letter-spacing: 0.2px;
-    border-radius: var(--radius);
     cursor: pointer;
-    transition: all var(--transition);
-    position: relative;
-    overflow: hidden;
-}
-
-.primary-btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
-    pointer-events: none;
-}
-
-.primary-btn:hover {
-    background: var(--accent-hi);
-    box-shadow: 0 2px 8px rgba(76, 141, 255, 0.20);
-}
-
-.primary-btn:active {
-    transform: scale(0.98);
-    box-shadow: none;
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .primary-btn svg {
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: inherit;
+}
+
+.primary-btn:hover {
+    background: var(--btn-primary-hover);
+    border-color: #3b3b3b;
+    color: #e0e0e0;
+}
+
+.primary-btn:active {
+    background: var(--btn-primary-active);
+    border-color: #242424;
+    color: var(--text-muted);
 }
 
 .action-hint {
     text-align: center;
-    font-size: 9px;
+    font-size: 8.5px;
     color: var(--text-dim);
-    margin-top: 2px;
+    margin-top: 3px;
     letter-spacing: 0.2px;
 }
 
 /* ============================================================
-   STATUS BAR
+   STATUS BAR (Monochrome)
    ============================================================ */
 .status-bar {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
-    padding: 5px 0 2px;
-    font-size: 9.5px;
-    color: var(--text-dim);
+    padding: 4px 0 2px;
+    font-size: 9px;
+    color: var(--text-muted);
 }
 
 .status-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--success);
+    width: 4px;
+    height: 4px;
+    background: var(--text-muted);
     flex-shrink: 0;
-    box-shadow: 0 0 4px rgba(54, 179, 126, 0.3);
 }
 
 .status-bar.error .status-dot {
-    background: var(--danger);
-    box-shadow: 0 0 4px rgba(239, 85, 101, 0.3);
+    background: #888888;
 }
 
 .status-bar.error #status-text {
-    color: var(--danger);
+    color: #999999;
 }
 
 /* ============================================================
    DEBUG CONSOLE
    ============================================================ */
 .debug-section {
-    margin-top: 4px;
-    border-top: 1px solid var(--border-dim);
+    border-top: 1px solid var(--line-subtle);
     padding-top: 3px;
+    margin-top: 3px;
 }
 
 .debug-toggle {
@@ -553,40 +673,43 @@ input[type="color"]::-webkit-color-swatch {
     width: 100%;
     background: none;
     border: none;
-    border-radius: var(--radius);
     color: var(--text-dim);
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 600;
-    padding: 3px 0;
+    padding: 2px 0;
     cursor: pointer;
-    letter-spacing: 0.3px;
-    transition: color var(--transition);
+    letter-spacing: 0.2px;
+    transition: color var(--transition-fast);
 }
 
 .debug-toggle:hover {
-    color: var(--text-sec);
+    color: var(--text-secondary);
+}
+
+.debug-toggle svg {
+    width: 10px;
+    height: 10px;
 }
 
 .debug-panel {
-    margin-top: 4px;
-    background: var(--bg-deep);
-    border: 1px solid var(--border-dim);
-    border-radius: var(--radius);
-    padding: 6px;
+    margin-top: 3px;
+    background: #111111;
+    border: 1px solid var(--line-subtle);
+    padding: 5px;
 }
 
 #debug-log {
     font-family: "SF Mono", "Consolas", "Courier New", monospace;
-    font-size: 9px;
-    color: var(--success);
+    font-size: 8.5px;
+    color: var(--text-secondary);
     background: none;
     white-space: pre-wrap;
     word-break: break-all;
-    max-height: 120px;
+    max-height: 90px;
     overflow-y: auto;
     margin: 0 0 4px 0;
     padding: 0;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .debug-actions {
@@ -596,82 +719,37 @@ input[type="color"]::-webkit-color-swatch {
 
 .debug-btn {
     flex: 1;
-    background: var(--surface);
-    border: 1px solid var(--border-dim);
-    border-radius: var(--radius);
-    color: var(--text-dim);
+    background: var(--bg-surface);
+    border: none;
+    color: var(--text-muted);
     padding: 3px;
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .debug-btn:hover {
-    color: var(--text-sec);
-    border-color: var(--border);
-    background: var(--surface-hi);
+    color: var(--text-bright);
+    background: var(--bg-surface-hi);
 }
 
 /* ============================================================
-   SCROLLBAR
+   SCROLLBAR (Zero Radius, Hairline)
    ============================================================ */
 ::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
+    height: 3px;
 }
+
 ::-webkit-scrollbar-track {
     background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 2px;
+    background: #252525;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-dim);
-}
-
-/* ============================================================
-   UTILITY
-   ============================================================ */
-.secondary-btn,
-.ghost-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    flex: 1;
-    padding: 5px;
-    background: var(--surface);
-    border: 1px solid var(--border-dim);
-    border-radius: var(--radius);
-    color: var(--text-sec);
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition);
-}
-
-.secondary-btn:hover {
-    background: var(--surface-hi);
-    border-color: var(--border);
-}
-
-.ghost-btn { color: var(--danger); }
-
-.ghost-btn:hover {
-    border-color: var(--danger);
-    background: rgba(239, 85, 101, 0.06);
-}
-
-button {
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: var(--radius);
-    transition: all var(--transition);
-}
-
-button svg {
-    width: 12px;
-    height: 12px;
-    flex-shrink: 0;
+    background: #383838;
 }

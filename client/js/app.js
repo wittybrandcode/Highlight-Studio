@@ -255,3 +255,53 @@ document.getElementById("btn-clear-log").addEventListener("click", function () {
         debugLog.textContent = "Log cleared.";
     });
 });
+
+// ===== STEPPER CONTROLS & WHEEL SCRUBBING =====
+function adjustStepper(input, isUp) {
+    if (!input || input.disabled) return;
+    try {
+        if (isUp) {
+            input.stepUp();
+        } else {
+            input.stepDown();
+        }
+    } catch (e) {
+        var step = parseFloat(input.step) || 1;
+        var val = parseFloat(input.value) || 0;
+        val = isUp ? val + step : val - step;
+        var min = input.min !== "" ? parseFloat(input.min) : -Infinity;
+        var max = input.max !== "" ? parseFloat(input.max) : Infinity;
+        val = Math.max(min, Math.min(max, val));
+        input.value = Math.round(val * 100) / 100;
+    }
+    // Clean up floating point precision
+    var num = parseFloat(input.value);
+    if (!isNaN(num)) {
+        var stepStr = input.step || "1";
+        if (stepStr.indexOf(".") !== -1) {
+            var decimals = stepStr.split(".")[1].length;
+            input.value = num.toFixed(decimals);
+        }
+    }
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+document.addEventListener("click", function (e) {
+    var upBtn = e.target.closest(".step-up");
+    var downBtn = e.target.closest(".step-down");
+    if (upBtn) {
+        var box = upBtn.closest(".stepper-box");
+        if (box) adjustStepper(box.querySelector("input[type='number']"), true);
+    } else if (downBtn) {
+        var box = downBtn.closest(".stepper-box");
+        if (box) adjustStepper(box.querySelector("input[type='number']"), false);
+    }
+});
+
+document.querySelectorAll(".stepper-box input[type='number']").forEach(function (inp) {
+    inp.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        adjustStepper(inp, e.deltaY < 0);
+    }, { passive: false });
+});
