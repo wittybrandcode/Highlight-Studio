@@ -104,8 +104,8 @@ Every highlight box uses After Effects expressions for:
 
 | Mode | How to Use | Behavior |
 |---|---|---|
-| **All Lines** | Click "All Lines (الكل)" button | Updates `Master Highlight Color` on the text layer — all lines follow. |
-| **Selected Line** | Select a specific `[Line N]` shape layer, then click "Selected Line (السطر المحدد)" | Sets `Local Color` on that line only and detaches it from master. |
+| **All Lines** | Click the "All Lines" button | Updates `Master Highlight Color` on the text layer — all lines follow. |
+| **Selected Line** | Select a specific `[Line N]` shape layer, then click "Selected Line" | Sets `Local Color` on that line only and detaches it from master. |
 
 ### Keyboard Shortcuts
 
@@ -229,8 +229,8 @@ The engine detects `FULL_JUSTIFY_LASTLINE_*` paragraph modes and:
 
 | Feature | Status |
 |---|---|
-| Arabic (العربية) | ✅ Full RTL support |
-| Hebrew (עברית) | ✅ Full RTL support |
+| Arabic | ✅ Full RTL support |
+| Hebrew | ✅ Full RTL support |
 | Latin (English, French, etc.) | ✅ Full LTR support |
 | Mixed BiDi (Arabic + English) | ✅ Per-line auto-detection |
 | Center alignment | ✅ Centered box positioning |
