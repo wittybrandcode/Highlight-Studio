@@ -554,6 +554,100 @@ $._smartHighlighter.setQuickColor = function (hexColorStr, targetScope) {
     }
 };
 
+// تطبيق تعديل فوري ومباشر للمقاييس (تدوير الزوايا، الحواف) في After Effects
+$._smartHighlighter.setQuickParam = function (paramName, numVal, targetScope) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "ERROR: لا توجد تركيبة مفتوحة.";
+    if (comp.selectedLayers.length !== 1) return "ERROR: يرجى تحديد طبقة واحدة.";
+
+    var lyr = comp.selectedLayers[0];
+    var val = parseFloat(numVal);
+    if (isNaN(val)) return "ERROR: قيمة غير صالحة.";
+
+    var scope = targetScope || "all";
+    var fxMasterName = "";
+    var fxLocalName = "";
+
+    if (paramName === "roundness") {
+        fxMasterName = "Master Roundness";
+        fxLocalName = "Local Roundness";
+    } else if (paramName === "padX") {
+        fxMasterName = "Master Padding X";
+        fxLocalName = "Local Padding X";
+    } else if (paramName === "padY") {
+        fxMasterName = "Master Padding Y";
+        fxLocalName = "Local Padding Y";
+    } else {
+        return "ERROR: معلمة غير معروفة.";
+    }
+
+    app.beginUndoGroup("Highlight-Studio: " + fxMasterName);
+    try {
+        var textLayer = null;
+        var shapeLayer = null;
+
+        if (lyr instanceof TextLayer) {
+            textLayer = lyr;
+        } else if (lyr instanceof ShapeLayer && lyr.comment === "SMART_HL_PRO_LAYER") {
+            shapeLayer = lyr;
+            textLayer = lyr.parent;
+        }
+
+        if (!textLayer && !shapeLayer) {
+            app.endUndoGroup();
+            return "NO_HIGHLIGHT";
+        }
+
+        if (scope === "line") {
+            if (!shapeLayer && textLayer) {
+                for (var si = 1; si <= comp.numLayers; si++) {
+                    var chk = comp.layer(si);
+                    if (chk && chk.parent === textLayer && chk.comment === "SMART_HL_PRO_LAYER") {
+                        shapeLayer = chk;
+                        break;
+                    }
+                }
+            }
+            if (shapeLayer) {
+                var locFx = shapeLayer.effect(fxLocalName);
+                var useMFx = shapeLayer.effect("Use Master Controls");
+                if (locFx) locFx.property("Slider").setValue(val);
+                if (useMFx) useMFx.property("Checkbox").setValue(0);
+                app.endUndoGroup();
+                return "SUCCESS: " + paramName + " -> " + val + " (" + shapeLayer.name + ")";
+            } else {
+                app.endUndoGroup();
+                return "ERROR: لم يتم العثور على طبقة سطر.";
+            }
+        } else {
+            // نمط All Lines: تحديث الماستر على طبقة النص
+            if (textLayer) {
+                var mFx = textLayer.effect(fxMasterName);
+                if (mFx) {
+                    mFx.property("Slider").setValue(val);
+                }
+                for (var j = 1; j <= comp.numLayers; j++) {
+                    var lBox = comp.layer(j);
+                    if (lBox && lBox.parent === textLayer && lBox.comment === "SMART_HL_PRO_LAYER") {
+                        var boxUseM = lBox.effect("Use Master Controls");
+                        if (boxUseM && boxUseM.property("Checkbox").value === 0) {
+                            var locProp = lBox.effect(fxLocalName);
+                            if (locProp) locProp.property("Slider").setValue(val);
+                        }
+                    }
+                }
+                app.endUndoGroup();
+                return "SUCCESS: " + paramName + " -> " + val;
+            }
+        }
+        app.endUndoGroup();
+        return "NO_OP";
+    } catch (e) {
+        app.endUndoGroup();
+        return "ERROR: " + e.toString();
+    }
+};
+
 
 
 // الدالة الرئيسية لإنشاء الهايلايت

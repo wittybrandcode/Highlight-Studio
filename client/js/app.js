@@ -132,13 +132,54 @@ function applyLiveColor(hex) {
     });
 }
 
+// User interaction tracker to prevent background sync from overwriting active user edits
+var lastUserInteraction = 0;
+function markUserInteraction() {
+    lastUserInteraction = Date.now();
+}
+
 // Update color display and apply live
 colorPicker.addEventListener("input", function () {
+    markUserInteraction();
     colorHex.textContent = colorPicker.value.toUpperCase();
     applyLiveColor(colorPicker.value);
 });
 colorPicker.addEventListener("change", function () {
+    markUserInteraction();
     applyLiveColor(colorPicker.value);
+});
+
+// Apply live parameter updates (roundness, padX, padY) directly to After Effects in real-time
+function applyLiveParam(paramName, val) {
+    markUserInteraction();
+    csInterface.evalScript("$._smartHighlighter.setQuickParam('" + paramName + "', " + val + ", '" + currentScope + "')", function (res) {
+        if (res && res.indexOf("SUCCESS") !== -1) {
+            var msg = res.replace("SUCCESS:", "").trim();
+            setStatus(msg);
+        }
+    });
+}
+
+// Live update listeners for Roundness, Pad X, and Pad Y
+roundInput.addEventListener("input", function () {
+    applyLiveParam("roundness", parseFloat(this.value) || 0);
+});
+roundInput.addEventListener("change", function () {
+    applyLiveParam("roundness", parseFloat(this.value) || 0);
+});
+
+padXInput.addEventListener("input", function () {
+    applyLiveParam("padX", parseFloat(this.value) || 0);
+});
+padXInput.addEventListener("change", function () {
+    applyLiveParam("padX", parseFloat(this.value) || 0);
+});
+
+padYInput.addEventListener("input", function () {
+    applyLiveParam("padY", parseFloat(this.value) || 0);
+});
+padYInput.addEventListener("change", function () {
+    applyLiveParam("padY", parseFloat(this.value) || 0);
 });
 
 // Presets
@@ -150,6 +191,7 @@ var presets = {
 
 document.querySelectorAll(".preset-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
+        markUserInteraction();
         document.querySelectorAll(".preset-btn").forEach(function(b) { b.classList.remove("active"); });
         this.classList.add("active");
         var p = presets[this.dataset.preset];
@@ -166,26 +208,39 @@ document.querySelectorAll(".preset-btn").forEach(function (btn) {
                 syncSequentialState();
             }
             applyLiveColor(p.color);
+            applyLiveParam("roundness", p.round);
+            applyLiveParam("padX", p.padX);
+            applyLiveParam("padY", p.padY);
         }
     });
 });
 
 // Two-way sync: read current state from After Effects and update the panel
-function syncFromAE() {
+var lastSyncedLayer = "";
+
+function syncFromAE(force) {
+    // If user edited inputs recently (< 3s), do not overwrite user edits!
+    var isRecentUserEdit = (Date.now() - lastUserInteraction < 3000);
+
     csInterface.evalScript("$._smartHighlighter.getLayerState()", function (resStr) {
         if (!resStr || resStr === "EvalScript error.") return;
         try {
             var state = JSON.parse(resStr);
             if (state && state.ok) {
+                var layerChanged = (state.layerName && state.layerName !== lastSyncedLayer);
+                if (state.layerName) lastSyncedLayer = state.layerName;
+
                 if (state.hasHighlight && state.color) {
-                    if (document.activeElement !== colorPicker) {
+                    if (document.activeElement !== colorPicker && (!isRecentUserEdit || layerChanged || force)) {
                         colorPicker.value = state.color;
                         colorHex.textContent = state.color.toUpperCase();
                     }
                     if (state.type === "text") {
-                        if (typeof state.paddingX === "number" && document.activeElement !== padXInput) padXInput.value = state.paddingX;
-                        if (typeof state.paddingY === "number" && document.activeElement !== padYInput) padYInput.value = state.paddingY;
-                        if (typeof state.roundness === "number" && document.activeElement !== roundInput) roundInput.value = state.roundness;
+                        if (layerChanged || (!isRecentUserEdit && !force)) {
+                            if (typeof state.paddingX === "number" && document.activeElement !== padXInput) padXInput.value = state.paddingX;
+                            if (typeof state.paddingY === "number" && document.activeElement !== padYInput) padYInput.value = state.paddingY;
+                            if (typeof state.roundness === "number" && document.activeElement !== roundInput) roundInput.value = state.roundness;
+                        }
                         if (statusText.textContent.indexOf("Target:") !== -1 || statusText.textContent === "Ready") {
                             setStatus("Target: " + (state.layerName || "Master Text") + " (Master Controls)");
                         }
@@ -198,11 +253,10 @@ function syncFromAE() {
     });
 }
 
-window.addEventListener("focus", syncFromAE);
-document.body.addEventListener("mouseenter", syncFromAE);
+window.addEventListener("focus", function () { syncFromAE(true); });
 setInterval(function () {
-    if (!document.hidden) syncFromAE();
-}, 2000);
+    if (!document.hidden && Date.now() - lastUserInteraction > 3000) syncFromAE();
+}, 2500);
 syncFromAE();
 
 // Convert Hex color to RGBA array for After Effects
@@ -312,6 +366,7 @@ document.getElementById("btn-clear-log").addEventListener("click", function () {
 
 // ===== STEPPER CONTROLS & WHEEL SCRUBBING =====
 function adjustStepper(input, isUp) {
+    markUserInteraction();
     if (!input || input.disabled) return;
     try {
         if (isUp) {
