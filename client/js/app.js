@@ -1,6 +1,6 @@
 var csInterface = new CSInterface();
 
-// عناصر الواجهة
+// UI Elements
 var colorPicker = document.getElementById("color-picker");
 var colorHex = document.getElementById("color-hex");
 var alignSelect = document.getElementById("align-select");
@@ -47,7 +47,7 @@ if (sequentialCheck) {
     syncSequentialState();
 }
 
-// نمط تطبيق اللون (All Lines أو Selected Line)
+// Color application scope (All Lines or Selected Line)
 var currentScope = "all";
 var btnScopeAll = document.getElementById("btn-scope-all");
 var btnScopeLine = document.getElementById("btn-scope-line");
@@ -57,9 +57,9 @@ function setScope(scope) {
     if (btnScopeAll) btnScopeAll.classList.toggle("active", scope === "all");
     if (btnScopeLine) btnScopeLine.classList.toggle("active", scope === "line");
     if (scope === "all") {
-        setStatus("Mode: All Lines (تلوين كل الأسطر معاً)");
+        setStatus("Mode: All Lines");
     } else {
-        setStatus("Mode: Selected Line (تلوين السطر المحدد فقط)");
+        setStatus("Mode: Selected Line");
     }
 }
 
@@ -70,7 +70,7 @@ if (btnScopeLine) {
     btnScopeLine.addEventListener("click", function () { setScope("line"); });
 }
 
-// تطبيق فوري للون على الطبقة المحددة بحسب النمط المختار (all أو line)
+// Apply live color to the selected layer based on the chosen scope (all or line)
 function applyLiveColor(hex) {
     csInterface.evalScript("$._smartHighlighter.setQuickColor('" + hex + "', '" + currentScope + "')", function (res) {
         if (res && res.indexOf("SUCCESS") !== -1) {
@@ -82,7 +82,7 @@ function applyLiveColor(hex) {
     });
 }
 
-// تحديث نص اللون وتطبيقه لحظياً
+// Update color display and apply live
 colorPicker.addEventListener("input", function () {
     colorHex.textContent = colorPicker.value.toUpperCase();
     applyLiveColor(colorPicker.value);
@@ -91,7 +91,7 @@ colorPicker.addEventListener("change", function () {
     applyLiveColor(colorPicker.value);
 });
 
-// الأنماط الجاهزة (Presets)
+// Presets
 var presets = {
     marker: { color: "#FFE600", padX: 8, padY: 2, round: 2, dur: 0.35, stagger: 0.00, sequential: true },
     clean: { color: "#0D99FF", padX: 4, padY: 0, round: 0, dur: 0.20, stagger: 0.00, sequential: true },
@@ -120,7 +120,7 @@ document.querySelectorAll(".preset-btn").forEach(function (btn) {
     });
 });
 
-// المزامنة ثنائية الاتجاه: قراءة آخر تعديل من After Effects وتحديث اللوحة تلقائياً
+// Two-way sync: read current state from After Effects and update the panel
 function syncFromAE() {
     csInterface.evalScript("$._smartHighlighter.getLayerState()", function (resStr) {
         if (!resStr || resStr === "EvalScript error.") return;
@@ -155,7 +155,7 @@ setInterval(function () {
 }, 2000);
 syncFromAE();
 
-// تحويل اللون من Hex إلى مصفوفة RGBA تناسب After Effects
+// Convert Hex color to RGBA array for After Effects
 function hexToRgbaArray(hex) {
     var c = hex.replace("#", "");
     var r = parseInt(c.substring(0, 2), 16) / 255;
@@ -164,7 +164,7 @@ function hexToRgbaArray(hex) {
     return [r, g, b, 1.0];
 }
 
-// إنشاء كائن الإعدادات الموحد
+// Build the unified settings payload
 function getPayload() {
     var isSequential = sequentialCheck ? sequentialCheck.checked : true;
     return {
@@ -190,7 +190,7 @@ function showReport(res) {
     setStatus(msg || "Done.");
 }
 
-// الزر الذكي الموحد: إنشاء / تحديث / مسح
+// Smart unified button: Apply / Update / Clear
 var btnSmartApply = document.getElementById("btn-smart-apply");
 
 function executeSmartAction(isClearOnly) {
@@ -216,15 +216,15 @@ function executeSmartAction(isClearOnly) {
     }
 }
 
-// النقر العادي: إنشاء أو تحديث تلقائي (يحذف الربط القديم وينشئ الحديث)
-// النقر مع Alt أو Shift: مسح الهايلايت
+// Normal click: Apply or auto-update (removes old link and creates new)
+// Alt+Click or Shift+Click: Clear highlight
 if (btnSmartApply) {
     btnSmartApply.addEventListener("click", function (e) {
         var isClear = e.altKey || e.shiftKey;
         executeSmartAction(isClear);
     });
 
-    // النقر بزر الماوس الأيمن: مسح مباشر أيضاً لتسهيل الاستخدام
+    // Right-click: also clears for convenience
     btnSmartApply.addEventListener("contextmenu", function (e) {
         e.preventDefault();
         executeSmartAction(true);
