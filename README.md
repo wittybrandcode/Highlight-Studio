@@ -2,59 +2,58 @@
   <img src="docs/hero_banner.jpg" alt="Highlight Studio — Professional Text Highlighting for After Effects" width="100%" />
 </p>
 
-<h1 align="center">⚡ Highlight Studio</h1>
+<h1 align="center">⚡ Highlight Studio 2.0</h1>
 
 <p align="center">
-  <strong>Professional Text Highlighting Plugin for Adobe After Effects</strong><br/>
-  <sub>Create stunning, animated text highlight effects — supporting Arabic, Hebrew, Latin, and all mixed-direction layouts.</sub>
+  <strong>The Ultimate Text Highlighting & Caption Motion Suite for Adobe After Effects</strong><br/>
+  <sub>Interactive word-by-word selection, multi-color cumulative highlights, Hormozi elastic bounces, Vox speed-ramp wipes, and custom presets.</sub>
 </p>
 
 <p align="center">
   <a href="#-quick-start"><img src="https://img.shields.io/badge/Quick_Start-▶-FFE600?style=for-the-badge&logoColor=black" alt="Quick Start"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-0D99FF?style=for-the-badge" alt="License: MIT"/></a>
   <a href="#-compatibility"><img src="https://img.shields.io/badge/After_Effects-CC_2017+-9999FF?style=for-the-badge&logo=adobeaftereffects&logoColor=white" alt="AE Compatibility"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/CEP-Panel-FF4081?style=for-the-badge" alt="CEP Panel"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/CEP-Panel-2ECC71?style=for-the-badge" alt="CEP Panel"/></a>
 </p>
 
 ---
 
 ## ✨ What is Highlight Studio?
 
-**Highlight Studio** is a CEP (Common Extensibility Platform) panel for Adobe After Effects that generates perfectly-aligned, animated highlight boxes behind your text — **per-line, per-word, fully automated**. It intelligently detects text layout, paragraph justification, BiDi direction, and line wrapping to produce pixel-perfect results in a single click.
+**Highlight Studio** is a modular CEP panel for Adobe After Effects that generates animated, perfectly-aligned highlight containers behind your text — **per-line, per-sentence, or per-word**. 
 
-> _No more manually creating shapes, aligning them to each line, and keyframing them one by one._
+It eliminates tedious manual shape alignment and expression setup, supporting **Arabic, Hebrew, Latin**, mixed BiDi paragraphs, and dynamic text resizing without ever altering or distorting the original `Source Text`.
 
 ---
 
 ## 🎬 Key Features
 
-### 🎯 Intelligent Text Analysis
-- **Auto line-break detection** — Accurately identifies visual line breaks even with complex word-wrap behavior.
-- **Paragraph justification awareness** — Correctly handles Left, Right, Center, and **Justified (Full)** text with last-line detection.
-- **BiDi support** — Full support for **Arabic, Hebrew, Latin**, and mixed-direction paragraphs with per-line RTL/LTR detection.
+### 🔤 1. Interactive Word Tokens Board & Phrase Highlighting
+- **Click & Drag Multi-Selection** — Select individual words, click & drag across tokens, or `Shift+Click` for ranges.
+- **Cumulative Multi-Color Highlights (Additive Mode)** — Highlight word A in green, word B in yellow, and word C in cyan on the same text layer without clearing previous phrases.
+- **Active Phrases Tray** — Displays all applied phrase highlights in AE with color dots and **1-click deletion (`✕`)** for individual phrases.
+- **Visual Word Indicators** — Applied words are marked with colored underlines directly on the token board.
 
-### 🎨 Professional Color System
-- **Two-way sync** — Changes in the panel reflect instantly in AE, and changes in AE reflect back in the panel.
-- **Master + Local color architecture** — Set a global color for all lines, or override individual lines with local colors.
-- **Live color preview** — Drag the color picker and see the highlight update in real-time.
-- **Scope control** — Choose between "All Lines" (master) and "Selected Line" (local override) with a single toggle.
+### 🎢 2. Advanced Motion Dynamics (Physics-Based)
+- **Hormozi Elastic Overshoot (`pop`)** — Mathematically continuous ($C^0/C^1$) harmonic damped spring bounce ($decay = 7.5, freq = 4.2, amp = 18.0$) settling cleanly to 100% with zero frame jumping.
+- **Smooth Vox Speed-Ramp (`wipe`)** — Punchy 25% attack followed by silky 80% cinematic deceleration.
+- **Typewriter Sync (`typewriter`)** — Character-proportional progression linked to the text Range Selector.
+- **Instant Snap Cut (`snap`)** — 0-frame jump cut for high-energy social edits.
 
-### 🎞️ Animation Engine
-- **Write-on animation** — Built-in smooth reveal animation with customizable easing.
-- **Sequential mode** — Lines animate one after another (end-to-start chaining).
-- **Stagger mode** — Lines animate with overlapping delays for a flowing effect.
-- **Per-line timing** — Control speed and gap/stagger duration independently.
+### ⏱️ 3. Phrase Outro & Hold Timing
+- **Dedicated Outro Toggle** — Enable auto-exit animations for phrases.
+- **Hold Duration Stepper** — Customize how long each phrase remains highlighted before smoothly fading or retracting.
+- **Sequential (`SEQ`) Highlighting** — Highlight words in cascading order for lyric videos and reels.
 
-### 🧠 Smart Update System
-- **Snapshot & Reconcile** — When updating an existing highlight, local color overrides and custom tweaks are preserved automatically.
-- **Non-destructive workflow** — All highlight shapes are expression-driven and respond to font size changes, layer transforms, and timeline scrubbing.
-- **One-click apply/update/clear** — A unified smart button handles creation, update, and removal.
+### 💾 4. Custom Presets System & Persistence
+- **One-Click Preset Creation (`+ Preset`)** — Save favorite color, padding, roundness, and motion settings as reusable presets.
+- **LocalStorage Persistence** — Custom presets survive panel reloads and After Effects restarts.
+- **Live Preview & Deletion** — Custom presets show their unique color badge with quick deletion (`✕`).
 
-### ⚙️ Expression-Driven Architecture
-Every highlight box uses After Effects expressions for:
-- **Dynamic resizing** — Boxes scale proportionally when font size changes.
-- **Leading-aware positioning** — Vertical positions adapt to line spacing and leading changes.
-- **Master/Local switching** — A checkbox expression switches between master controls and per-line overrides.
+### 🎯 5. Intelligent Text Analysis & BiDi Engine
+- **Zero Text Distortion** — Non-destructive subpixel measurement without injecting brackets `[...]` or modifying text.
+- **Full BiDi & Justification Awareness** — Handles RTL (Arabic, Hebrew), LTR, Center, and Full Justified text with subpixel character tracking.
+- **Two-Way Live Sync** — Panel controls reflect AE layers instantly; scrubbing parameters updates AE in real-time.
 
 ---
 
@@ -74,154 +73,72 @@ Every highlight box uses After Effects expressions for:
    | **Windows** | `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\` |
    | **macOS** | `/Library/Application Support/Adobe/CEP/extensions/` |
 
-3. **Enable unsigned extensions** (for development):
-   - **Windows**: Open `regedit` → navigate to `HKEY_CURRENT_USER\SOFTWARE\Adobe\CSXS.11` → create a string value `PlayerDebugMode` set to `1`.
-   - **macOS**: Run in Terminal:
+3. **Enable unsigned extensions**:
+   - **Windows**: In `regedit`, navigate to `HKEY_CURRENT_USER\SOFTWARE\Adobe\CSXS.11` (or your version) and set `PlayerDebugMode` to `1` (String).
+   - **macOS**: In Terminal:
      ```bash
      defaults write com.adobe.CSXS.11 PlayerDebugMode 1
      ```
-   > Replace `CSXS.11` with your CEP version (e.g., `CSXS.9` for CC 2019).
 
 4. **Restart After Effects** → Go to `Window` → `Extensions` → **Highlight-Studio**.
 
 ---
 
-## 🎮 How to Use
+## 🎮 Workflow & Shortcuts
 
-### Basic Workflow
+### Highlighting Full Paragraphs & Lines
+1. Select a Text Layer in your AE composition.
+2. Under the **Paragraph & Lines** tab, choose a Preset or customize Shape, Color, Padding, and Motion.
+3. Click **Apply Highlight** (or `Click`).
 
-```
-1. Select a Text Layer in your composition
-2. Adjust settings in the Highlight Studio panel:
-   • Choose a Preset (Marker / Clean / Caption) or customize
-   • Set Color, Padding, and Roundness
-   • Enable/disable animation and set timing
-3. Click "⚡ Apply / Update Highlight"
-4. Done! Highlight shapes are created and linked to your text.
-```
+### Highlighting Specific Phrases / Words
+1. Switch to the **Phrase Highlight** tab.
+2. Click or drag to select target words in the interactive tokens board.
+3. Choose a color and animation style, then click **Apply Phrase Highlight**.
+4. Repeat with different colors to create colorful multi-word highlights on the same layer!
 
-### Color Modes
-
-| Mode | How to Use | Behavior |
-|---|---|---|
-| **All Lines** | Click the "All Lines" button | Updates `Master Highlight Color` on the text layer — all lines follow. |
-| **Selected Line** | Select a specific `[Line N]` shape layer, then click "Selected Line" | Sets `Local Color` on that line only and detaches it from master. |
-
-### Keyboard Shortcuts
+### Keyboard & Mouse Shortcuts
 
 | Action | Shortcut |
 |---|---|
-| Apply / Update | `Click` the ⚡ button |
-| Clear Highlight | `Alt+Click` or `Right-Click` the ⚡ button |
+| **Reload Panel** | `F5` or `Ctrl+R` |
+| **Clear Highlights** | `Alt+Click` or `Right-Click` on Apply button |
+| **Token Range Selection** | `Shift+Click` on tokens in Words Board |
+| **Drag Multi-Select** | `Click & Drag` across word tokens |
+| **Precision Stepper Adjust** | `Shift` (×10) or `Alt` (×0.1) while clicking arrows or mouse-wheel scrubbing |
+| **Interactive Scrubbing** | `Click & Drag` horizontally on input labels (Pad X, Radius, etc.) |
 
 ---
 
-## 📁 Project Structure
+## 🏗️ Modular Architecture
 
 ```
 Highlight-Studio/
 ├── CSXS/
-│   └── manifest.xml          # CEP extension manifest (AE CC 2017+)
+│   └── manifest.xml          # CEP Extension manifest
 ├── client/
-│   ├── index.html             # Panel UI
+│   ├── index.html            # Dark industrial UI (zero radius, high-contrast)
 │   ├── css/
-│   │   └── style.css          # Dark-themed panel styles
+│   │   └── style.css         # Industrial design tokens & animations
 │   └── js/
-│       ├── CSInterface.js     # Adobe CEP interface library
-│       └── app.js             # Panel logic & two-way sync
+│       ├── CSInterface.js    # Adobe CEP bridge
+│       └── app.js            # Modular client namespaces (HS.State, HS.Presets, HS.PhraseManager)
 ├── host/
-│   └── hostscript.jsx         # ExtendScript engine (all AE logic)
+│   ├── hostscript.jsx        # Modular host aggregator
+│   └── modules/
+│       ├── Config.jsx        # Shared constants & tags
+│       ├── Utils.jsx         # Math, color conversions & JSON helpers
+│       ├── TextScanner.jsx   # Line wrapping, justification & subpixel character offsets
+│       ├── InvisibleAnchors.jsx # Non-destructive text anchor system
+│       ├── HighlightBuilder.jsx # Full-line shape generation & expressions
+│       ├── TagManager.jsx    # Word-level phrase highlights & applied tray engine
+│       ├── TypewriterEngine.jsx # Dynamic typewriter synchronization
+│       └── ControllerBridge.jsx # Fast two-way parameter sync
 ├── docs/
-│   ├── hero_banner.jpg        # README banner
-│   └── SMART_SYNC_PLAN.md     # Architecture design document
-├── .debug                     # CEP debug port config
-├── .gitignore
-├── LICENSE
+│   ├── ROADMAP_AND_EXECUTION_PLAN.md
+│   └── hero_banner.jpg
 └── README.md
 ```
-
----
-
-## 🏗️ Architecture
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                        CEP Panel (HTML/JS)                       │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐ │
-│  │  Color Picker│  │  Presets     │  │  Animation Controls     │ │
-│  │  Scope Btns  │  │  Marker/... │  │  Sequential / Stagger   │ │
-│  └──────┬───────┘  └──────┬──────┘  └────────────┬────────────┘ │
-│         │                 │                       │              │
-│         └─────────────────┴───────────────────────┘              │
-│                           │                                      │
-│                    csInterface.evalScript()                       │
-│                           │                                      │
-├───────────────────────────┼──────────────────────────────────────┤
-│                           ▼                                      │
-│              ExtendScript Engine (hostscript.jsx)                 │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │  $._smartHighlighter                                        │ │
-│  │  ├── scanParagraph()     → Line-break & metrics detection   │ │
-│  │  ├── createHighlight()   → Shape layer generation           │ │
-│  │  ├── setQuickColor()     → Live two-way color application   │ │
-│  │  ├── getLayerState()     → AE → Panel state sync            │ │
-│  │  ├── snapshotBoxes()     → Preserve local overrides         │ │
-│  │  ├── removeHighlight()   → Clean removal                    │ │
-│  │  └── smartHighlight()    → Unified apply/update entry point │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│                           │                                      │
-│                           ▼                                      │
-│              After Effects Composition                           │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │  Text Layer (Master Controls)                               │ │
-│  │  ├── Master Highlight Color  [Color Control]                │ │
-│  │  ├── Master Padding X/Y      [Slider Control]              │ │
-│  │  ├── Master Roundness         [Slider Control]              │ │
-│  │  │                                                          │ │
-│  │  └─ Children (Shape Layers, comment="SMART_HL_PRO_LAYER")  │ │
-│  │     ├── [Line 1] → Local Color, Padding, Progress          │ │
-│  │     ├── [Line 2] → Local Color, Padding, Progress          │ │
-│  │     └── [Line N] → ...                                     │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🔧 Technical Details
-
-### Expression System
-
-Each shape layer contains expression-driven properties that respond to runtime changes:
-
-```javascript
-// Size expression (simplified)
-var useM = effect("Use Master Controls")("Checkbox");
-var pX = (useM == 1) ? parent.effect("Master Padding X")("Slider") 
-                     : effect("Local Padding X")("Slider");
-var fontRatio = curFS / baseFS;
-var fullW = (baseWidth * fontRatio) + pX * 2;
-var p = clamp(effect("Progress")("Slider") / 100, 0, 1);
-[fullW * p, fullH];
-```
-
-### Master/Local Color Architecture
-
-```javascript
-// Fill Color expression
-var useM = effect("Use Master Controls")("Checkbox");
-var mCol = parent.effect("Master Highlight Color")("Color");
-var lCol = effect("Local Color")("Color");
-// If local override is active OR local has keyframes → use local
-(useM == 0 || lCol.numKeys > 0) ? lCol.value : mCol;
-```
-
-### Justified Text Handling
-
-The engine detects `FULL_JUSTIFY_LASTLINE_*` paragraph modes and:
-- Assigns `rFull.width` (full paragraph width) to all non-last lines.
-- Preserves measured width for the last line of each paragraph.
-- Correctly identifies all four justify variants (left, right, center, full).
 
 ---
 
@@ -229,10 +146,10 @@ The engine detects `FULL_JUSTIFY_LASTLINE_*` paragraph modes and:
 
 | Feature | Status |
 |---|---|
-| Arabic | ✅ Full RTL support |
+| Arabic | ✅ Full RTL support with Kashida & subpixel kerning |
 | Hebrew | ✅ Full RTL support |
 | Latin (English, French, etc.) | ✅ Full LTR support |
-| Mixed BiDi (Arabic + English) | ✅ Per-line auto-detection |
+| Mixed BiDi (Arabic + English) | ✅ Per-line auto-direction detection |
 | Center alignment | ✅ Centered box positioning |
 | Justified text | ✅ Full-width line detection |
 
@@ -242,21 +159,9 @@ The engine detects `FULL_JUSTIFY_LASTLINE_*` paragraph modes and:
 
 | Requirement | Minimum Version |
 |---|---|
-| Adobe After Effects | CC 2017 (v14.0) and later |
+| Adobe After Effects | CC 2017 (v14.0) up to 2026+ |
 | CEP Runtime | CSXS 7.0+ |
-| OS | Windows 10+ / macOS 10.12+ |
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+| OS | Windows 10/11 / macOS 10.14+ |
 
 ---
 
@@ -264,14 +169,3 @@ Contributions are welcome! Feel free to:
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
----
-
-## 🙏 Credits
-
-Built with ❤️ by [Witty Brand Code](https://github.com/wittybrandcode)
-
----
-
-<p align="center">
-  <sub>If you find this useful, consider giving it a ⭐ on GitHub!</sub>
-</p>

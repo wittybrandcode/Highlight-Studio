@@ -38,6 +38,10 @@
                             <Width>240</Width>
                         </MinSize>
                     </Geometry>
+                    <CEFCommandLine>
+                        <Parameter>--enable-nodejs</Parameter>
+                        <Parameter>--mixed-context</Parameter>
+                    </CEFCommandLine>
                 </UI>
             </DispatchInfo>
         </Extension>

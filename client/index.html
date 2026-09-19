@@ -2,282 +2,608 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Highlight Studio</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
+        <!-- Studio Header -->
         <header class="header">
             <div class="brand">
                 <span class="brand-icon">
-                    <!-- Phosphor: Highlighter -->
-                    <svg viewBox="0 0 256 256" width="14" height="14" fill="currentColor"><path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152a16,16,0,0,0-4.69,11.31V208a16,16,0,0,0,16,16H92.69A16,16,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM51.31,160,136,75.31,180.69,120,96,204.69ZM48,208V179.31L76.69,208Zm48-3.31L76.69,185.37,160,102.06h0l19.32,19.31Z"/></svg>
+                    <!-- Lucide: Highlighter -->
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
                 </span>
-                <span class="brand-title">Highlight Studio</span>
+                <div class="brand-text">
+                    <span class="brand-title">Highlight Studio</span>
+                    <span class="brand-sub">Professional Motion Highlighter</span>
+                </div>
             </div>
-            <span class="badge">PRO</span>
+            <div class="header-right">
+                <span id="scope-badge" class="scope-indicator-badge">MASTER</span>
+                <button type="button" id="btn-reload" class="icon-btn reload-btn" title="Reload Panel (F5 / Ctrl+R)">
+                    <!-- Lucide: RotateCw -->
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                </button>
+            </div>
         </header>
 
-        <!-- Presets -->
-        <div class="section-label">Presets</div>
-        <div class="presets-row">
-            <button type="button" class="preset-btn active" data-preset="marker">
-                <!-- Phosphor: PenNib -->
-                <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M224,48a8,8,0,0,0-8-8,56.06,56.06,0,0,0-56,56,8,8,0,0,0,16,0,40,40,0,0,1,40-40A8,8,0,0,0,224,48ZM92.69,120H48a16,16,0,0,0-16,16v40a16,16,0,0,0,4.69,11.31l32,32A16,16,0,0,0,79.94,224H120a16,16,0,0,0,16-16V163.31A16,16,0,0,0,131.31,152ZM120,208H80L48,176V136H92.69L120,163.31Z"/></svg>
-                Marker
-            </button>
-            <button type="button" class="preset-btn" data-preset="clean">
-                <!-- Phosphor: SquareSplitHorizontal -->
-                <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM48,48h72V208H48Zm160,160H136V48h72V208Z"/></svg>
-                Clean
-            </button>
-            <button type="button" class="preset-btn" data-preset="caption">
-                <!-- Phosphor: TextT -->
-                <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M208,56a8,8,0,0,1-8,8H136V200a8,8,0,0,1-16,0V64H56a8,8,0,0,1,0-16H200A8,8,0,0,1,208,56Z"/></svg>
-                Caption
-            </button>
-        </div>
-
-        <!-- Color Target Scope -->
-        <div class="scope-row">
-            <div class="segmented-control" id="color-scope">
-                <button type="button" class="scope-btn active" id="btn-scope-all" data-scope="all" title="Apply color to all lines (Master)">
-                    <!-- Phosphor: Rows (Zero Radius) -->
-                    <svg viewBox="0 0 256 256" width="12" height="12" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="square" stroke-linejoin="miter"><rect x="40" y="48" width="176" height="56"/><rect x="40" y="152" width="176" height="56"/></svg>
-                    All Lines
-                </button>
-                <button type="button" class="scope-btn" id="btn-scope-line" data-scope="line" title="Apply color to selected line only">
-                    <!-- Phosphor: LineSegment -->
-                    <svg viewBox="0 0 256 256" width="12" height="12" fill="currentColor"><path d="M213.66,42.34a8,8,0,0,0-11.32,0l-160,160a8,8,0,0,0,11.32,11.32l160-160A8,8,0,0,0,213.66,42.34Z"/></svg>
-                    Selected Line
-                </button>
-            </div>
-        </div>
-
-        <!-- Color & Direction Row -->
-        <div class="ctrl-row">
-            <div class="ctrl-field color-field">
-                <label for="color-picker">
-                    <!-- Phosphor: Palette -->
-                    <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M200.77,53.89A103.27,103.27,0,0,0,128,24h-1.07A104,104,0,0,0,24,128c0,43,26.58,79.06,69.36,94.17A32,32,0,0,0,136,192a16,16,0,0,1,16-16h46.21a31.81,31.81,0,0,0,31.2-24.88,104.43,104.43,0,0,0,2.59-24A103.28,103.28,0,0,0,200.77,53.89ZM76,168a12,12,0,1,1,12-12A12,12,0,0,1,76,168Zm0-56a12,12,0,1,1,12-12A12,12,0,0,1,76,112Zm52-40a12,12,0,1,1,12-12A12,12,0,0,1,128,72Zm52,40a12,12,0,1,1,12-12A12,12,0,0,1,180,112Z"/></svg>
-                    Color
+        <!-- 1. Presets Toolbar (Clean Dropdown + Actions) -->
+        <div class="presets-toolbar">
+            <div class="preset-field-group">
+                <label for="preset-select" class="preset-field-label" title="Highlight Style Presets">
+                    <!-- Lucide: Sliders -->
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="21" y2="21"/><line x1="4" x2="20" y1="14" y2="14"/><line x1="4" x2="20" y1="7" y2="7"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="14" r="2"/><circle cx="12" cy="21" r="2"/></svg>
+                    <span>PRESET</span>
                 </label>
-                <div class="color-picker-wrapper">
-                    <input type="color" id="color-picker" value="#FFE600">
-                    <span id="color-hex">#FFE600</span>
+                <div class="select-wrap preset-dropdown-wrap">
+                    <select id="preset-select">
+                        <option value="typewriter" selected>Typewriter Sync (Core)</option>
+                        <option value="vox">Vox Documentary</option>
+                        <option value="clean">Clean Underline</option>
+                    </select>
+                    <span class="select-caret">▾</span>
                 </div>
             </div>
-            <div class="ctrl-field dir-field">
-                <label for="align-select">
-                    <!-- Phosphor: TextAlignLeft -->
-                    <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M32,64a8,8,0,0,1,8-8H216a8,8,0,0,1,0,16H40A8,8,0,0,1,32,64Zm8,48H168a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm176,24H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Zm-48,40H40a8,8,0,0,0,0,16H168a8,8,0,0,0,0-16Z"/></svg>
-                    Direction
-                </label>
-                <div class="select-wrap">
-                    <select id="align-select">
-                        <option value="auto" selected>Auto Detect</option>
-                        <option value="ltr">Left (LTR)</option>
-                        <option value="rtl">Right (RTL)</option>
-                        <option value="center">Center</option>
-                    </select>
-                    <span class="select-arrow">
-                        <!-- Phosphor: CaretDown -->
-                        <svg viewBox="0 0 256 256" width="9" height="9" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>
+            <div class="preset-actions-group">
+                <button type="button" class="preset-tool-btn" id="btn-save-preset" title="Save current settings as a new preset">
+                    <!-- Lucide: Plus -->
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    <span>Save</span>
+                </button>
+                <button type="button" class="preset-tool-btn danger" id="btn-delete-preset" style="display: none;" title="Delete active custom preset">
+                    <!-- Lucide: Trash2 -->
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Mode Tabs (Paragraph & Lines vs Phrase Highlight) -->
+        <div class="studio-tabs-row" id="main-tabs">
+            <button type="button" class="studio-tab-btn active" id="tab-btn-paragraph" data-tab="paragraph">
+                <!-- Lucide: AlignJustify -->
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+                <span>Paragraph & Lines</span>
+            </button>
+            <button type="button" class="studio-tab-btn" id="tab-btn-phrases" data-tab="phrases">
+                <!-- Lucide: Highlighter -->
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+                <span>Phrase Highlight</span>
+            </button>
+        </div>
+
+        <!-- ============================================================
+             TAB VIEW 1: PARAGRAPH & LINES (Full Block & Line Scope)
+             ============================================================ -->
+        <div id="view-paragraph" class="tab-view active">
+            <!-- 2. Target & Scope Section -->
+            <section class="studio-card">
+                <div class="target-scope-row">
+                    <!-- Scope Switch (Master vs Local) -->
+                    <div class="segmented-control scope-selector full-width-segmented" id="control-scope">
+                        <button type="button" class="scope-btn active" id="btn-scope-all" data-scope="all" title="All Lines (Master)">
+                            <!-- Lucide: Layers -->
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                            <span>All Lines</span>
+                        </button>
+                        <button type="button" class="scope-btn" id="btn-scope-line" data-scope="line" title="Selected Line (Local)">
+                            <!-- Lucide: SquareSplitVertical -->
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3"/><line x1="3" x2="21" y1="12" y2="12"/></svg>
+                            <span>Single Line</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Target Status -->
+                <div class="target-strip">
+                    <span class="target-indicator-dot"></span>
+                    <span class="target-strip-label">LINKED:</span>
+                    <span id="target-info-name" class="target-strip-val">Select Text or Shape Layer</span>
+                </div>
+            </section>
+
+            <!-- 3. Appearance & Precision Metrics Section -->
+            <section class="studio-card">
+                <div class="card-section-header">
+                    <span class="card-section-title">
+                        <!-- Lucide: Palette -->
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                        Appearance
                     </span>
                 </div>
-            </div>
-        </div>
 
-        <!-- Metrics (Pad X, Pad Y, Radius) with Stepper Arrows -->
-        <div class="ctrl-row">
-            <div class="ctrl-field">
-                <label for="pad-x">
-                    <!-- Phosphor: ArrowsHorizontal -->
-                    <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M237.66,133.66l-32,32a8,8,0,0,1-11.32-11.32L212.69,136H43.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L43.31,120H212.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,237.66,133.66Z"/></svg>
-                    Pad X
-                </label>
-                <div class="stepper-box">
-                    <input type="number" id="pad-x" value="8" min="0" max="100" step="1">
-                    <div class="stepper-arrows">
-                        <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">
-                            <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,165.66a8,8,0,0,1-11.32,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg>
-                        </button>
-                        <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">
-                            <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                        </button>
+                <!-- Shape, Direction & Color Swatch -->
+                <div class="fields-row">
+                    <div class="field-item">
+                        <label for="style-select">Shape</label>
+                        <div class="select-wrap">
+                            <select id="style-select">
+                                <option value="box" selected>Box</option>
+                                <option value="pill">Pill</option>
+                                <option value="marker">Marker</option>
+                                <option value="underline">Underline</option>
+                                <option value="outline">Outline</option>
+                            </select>
+                            <span class="select-caret">▾</span>
+                        </div>
+                    </div>
+
+                    <div class="field-item">
+                        <label for="align-select">Direction</label>
+                        <div class="select-wrap">
+                            <select id="align-select">
+                                <option value="auto" selected>Auto</option>
+                                <option value="ltr">LTR</option>
+                                <option value="rtl">RTL</option>
+                                <option value="center">Center</option>
+                            </select>
+                            <span class="select-caret">▾</span>
+                        </div>
+                    </div>
+
+                    <div class="field-item color-item">
+                        <label for="color-picker">Color</label>
+                        <div class="color-badge-wrap">
+                            <input type="color" id="color-picker" value="#3C4BB9">
+                            <span id="color-hex">#3C4BB9</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="ctrl-field">
-                <label for="pad-y">
-                    <!-- Phosphor: ArrowsVertical -->
-                    <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M167.39,196.94a8,8,0,0,1-1.73,8.72l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L120,212.69V43.31L101.66,61.66A8,8,0,0,1,90.34,50.34l32-32a8,8,0,0,1,11.32,0l32,32a8,8,0,0,1-11.32,11.32L136,43.31V212.69l18.34-18.35a8,8,0,0,1,8.72-1.73A8,8,0,0,1,167.39,196.94Z"/></svg>
-                    Pad Y
-                </label>
-                <div class="stepper-box">
-                    <input type="number" id="pad-y" value="2" min="0" max="100" step="1">
-                    <div class="stepper-arrows">
-                        <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">
-                            <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,165.66a8,8,0,0,1-11.32,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg>
-                        </button>
-                        <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">
-                            <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                        </button>
+
+                <!-- Swatches Bar -->
+                <div class="swatches-bar">
+                    <button type="button" class="swatch-btn active" data-color="#ffd13b" style="background:#ffd13b" title="Amber Gold"></button>
+                    <button type="button" class="swatch-btn" data-color="#00b4d8" style="background:#00b4d8" title="Cyan Accent"></button>
+                    <button type="button" class="swatch-btn" data-color="#ff3b5c" style="background:#ff3b5c" title="Coral Red"></button>
+                    <button type="button" class="swatch-btn" data-color="#2ecc71" style="background:#2ecc71" title="Emerald Green"></button>
+                    <button type="button" class="swatch-btn" data-color="#a855f7" style="background:#a855f7" title="Purple Glow"></button>
+                    <button type="button" class="swatch-btn" data-color="#ffffff" style="background:#ffffff" title="Pure White"></button>
+                </div>
+
+                <!-- Precision Metrics 2x2 Grid -->
+                <div class="metrics-grid-2x2">
+                    <div class="precision-input-box">
+                        <label class="scrub-label" data-target="pad-x" title="Drag left/right to adjust horizontal padding">
+                            <!-- Lucide: MoveHorizontal -->
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 8 22 12 18 16"/><polyline points="6 8 2 12 6 16"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                            <span class="scrub-text">Pad X</span>
+                        </label>
+                        <div class="input-val-wrap">
+                            <input type="number" id="pad-x" value="10" min="0" max="200" step="1">
+                            <span class="unit-tag">px</span>
+                        </div>
+                        <div class="stepper-actions">
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                        </div>
+                    </div>
+
+                    <div class="precision-input-box">
+                        <label class="scrub-label" data-target="pad-y" title="Drag left/right to adjust vertical padding">
+                            <!-- Lucide: MoveVertical -->
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 18 12 22 16 18"/><polyline points="8 6 12 2 16 6"/><line x1="12" x2="12" y1="2" y2="22"/></svg>
+                            <span class="scrub-text">Pad Y</span>
+                        </label>
+                        <div class="input-val-wrap">
+                            <input type="number" id="pad-y" value="10" min="0" max="100" step="1">
+                            <span class="unit-tag">px</span>
+                        </div>
+                        <div class="stepper-actions">
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                        </div>
+                    </div>
+
+                    <div class="precision-input-box">
+                        <label class="scrub-label" data-target="roundness" title="Corner Roundness">
+                            <!-- Lucide: Maximize2 -->
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></svg>
+                            <span class="scrub-text">Radius</span>
+                        </label>
+                        <div class="input-val-wrap">
+                            <input type="number" id="roundness" value="0" min="0" max="50" step="1">
+                            <span class="unit-tag">px</span>
+                        </div>
+                        <div class="stepper-actions">
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                        </div>
+                    </div>
+
+                    <div class="precision-input-box">
+                        <label class="scrub-label" data-target="opacity-input" title="Opacity">
+                            <!-- Lucide: CircleDot -->
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20Z"/></svg>
+                            <span class="scrub-text">Opacity</span>
+                        </label>
+                        <div class="input-val-wrap">
+                            <input type="number" id="opacity-input" value="100" min="0" max="100" step="5">
+                            <span class="unit-tag">%</span>
+                        </div>
+                        <div class="stepper-actions">
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="ctrl-field">
-                <label for="roundness">
-                    <!-- Phosphor: BoundingBox -->
-                    <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M208,96a16,16,0,0,0,16-16V48a16,16,0,0,0-16-16H176a16,16,0,0,0-16,16v8H96V48A16,16,0,0,0,80,32H48A16,16,0,0,0,32,48V80A16,16,0,0,0,48,96h8v64H48a16,16,0,0,0-16,16v32a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16v-8h64v8a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V176a16,16,0,0,0-16-16h-8V96ZM48,80V48H80V80Zm32,128H48V176H80Zm96-48H96v-8a16,16,0,0,0-16-16H72V96h8a16,16,0,0,0,16-16V72h64v8a16,16,0,0,0,16,16h8v64h-8a16,16,0,0,0-16,16Zm32,48H176V176h32Zm0-128H176V48h32Z"/></svg>
-                    Radius
-                </label>
-                <div class="stepper-box">
-                    <input type="number" id="roundness" value="0" min="0" max="50" step="1">
-                    <div class="stepper-arrows">
-                        <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">
-                            <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,165.66a8,8,0,0,1-11.32,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg>
-                        </button>
-                        <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">
-                            <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                        </button>
+
+                <!-- Scope Switch Row (Single Line Mode) -->
+                <div class="scope-row" id="scope-row" style="display: none;">
+                    <div class="field-item">
+                        <label for="line-index-select">Active Line</label>
+                        <div class="select-wrap">
+                            <select id="line-index-select">
+                                <option value="0">Line 1</option>
+                            </select>
+                            <span class="select-caret">▾</span>
+                        </div>
+                    </div>
+                    <div class="master-override-wrap">
+                        <label class="checkbox-label" title="Override master settings for this line">
+                            <input type="checkbox" id="override-master-check">
+                            <span class="custom-checkbox"></span>
+                            <span>Custom Settings</span>
+                        </label>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- Animation Section -->
-        <div class="anim-section">
-            <div class="anim-toggle-row">
-                <label class="switch">
-                    <input type="checkbox" id="anim-check" checked>
-                    <span class="track"><span class="thumb"></span></span>
-                </label>
-                <label for="anim-check" class="anim-label">
-                    <!-- Phosphor: Play -->
-                    <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65A16,16,0,0,1,64,216.13V39.87A16,16,0,0,1,88.32,26.35L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></svg>
-                    Write-on Animation
-                </label>
-            </div>
+            <!-- 4. Motion & Animation Section -->
+            <section class="studio-card">
+                <div class="card-section-header">
+                    <span class="card-section-title">
+                        <!-- Lucide: Timer -->
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+                        Motion & Timing
+                    </span>
+                    <div class="header-switch-wrap" title="Enable/Disable highlight animation">
+                        <label class="switch">
+                            <input type="checkbox" id="anim-check" checked>
+                            <span class="track"><span class="thumb"></span></span>
+                        </label>
+                    </div>
+                </div>
 
-            <div id="anim-controls">
-                <div class="anim-sub-toggles">
-                    <div class="anim-sub-row">
-                        <label class="switch switch-sm">
+                <div id="anim-controls" class="anim-controls-wrap">
+                    <div class="fields-row">
+                        <div class="field-item">
+                            <label for="motion-select">Animation</label>
+                            <div class="select-wrap">
+                                <select id="motion-select">
+                                    <option value="typewriter" selected>Typewriter Sync</option>
+                                    <option value="wipe">Smooth Wipe</option>
+                                    <option value="pop">Scale Pop</option>
+                                    <option value="snap">Snap Jump</option>
+                                </select>
+                                <span class="select-caret">▾</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timing Boxes: In, Out, Stagger -->
+                    <div class="timing-grid">
+                        <div class="precision-input-box timing-box" id="line-dur-box">
+                            <label class="scrub-label" data-target="line-dur" title="Intro animation duration">
+                                <!-- Lucide: Clock -->
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                <span class="scrub-text">In</span>
+                            </label>
+                            <div class="input-val-wrap">
+                                <input type="number" id="line-dur" value="0.35" min="0.05" max="5.0" step="0.05">
+                                <span class="unit-tag">s</span>
+                            </div>
+                            <div class="stepper-actions">
+                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                            </div>
+                        </div>
+
+                        <div class="precision-input-box timing-box disabled" id="out-time-col">
+                            <label class="scrub-label" data-target="out-time" title="Outro exit animation duration">
+                                <!-- Lucide: Hourglass -->
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+                                <span class="scrub-text">Out</span>
+                            </label>
+                            <div class="input-val-wrap">
+                                <input type="number" id="out-time" value="1.50" min="0.10" max="5.0" step="0.10" disabled>
+                                <span class="unit-tag">s</span>
+                            </div>
+                            <div class="stepper-actions">
+                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                            </div>
+                        </div>
+
+                        <div class="precision-input-box timing-box" id="stagger-col">
+                            <label class="scrub-label" id="stagger-label" data-target="stagger" title="Line sequence delay">
+                                <!-- Lucide: ArrowDown -->
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                                <span class="scrub-text">Gap</span>
+                            </label>
+                            <div class="input-val-wrap">
+                                <input type="number" id="stagger" value="0.00" min="0.0" max="2.0" step="0.02">
+                                <span class="unit-tag">s</span>
+                            </div>
+                            <div class="stepper-actions">
+                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Option Chips -->
+                    <div class="feature-chips-row">
+                        <label class="chip-toggle active" id="chip-seq" data-active="true" title="Sequential Line-by-Line">
                             <input type="checkbox" id="sequential-check" checked>
-                            <span class="track"><span class="thumb"></span></span>
+                            <!-- Lucide: ArrowDown -->
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="18 14 12 20 6 14"/></svg>
+                            <span class="chip-label">SEQ</span>
                         </label>
-                        <label for="sequential-check" class="anim-sub-label" title="Each line starts moving immediately when the previous line ends">
-                            <!-- Phosphor: SortAscending -->
-                            <svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor"><path d="M128,128a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16h72A8,8,0,0,1,128,128ZM48,72h56a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16Zm88,112H48a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16Zm85.66-21.66-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L176,169.37V48a8,8,0,0,1,16,0V169.37l18.34-18.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                            Sequential
-                        </label>
-                    </div>
-                    <div class="anim-sub-row">
-                        <label class="switch switch-sm">
+
+                        <label class="chip-toggle" id="chip-outro" data-active="false" title="Outro Exit Animation">
                             <input type="checkbox" id="outro-check">
-                            <span class="track"><span class="thumb"></span></span>
+                            <!-- Lucide: LogOut -->
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            <span class="chip-label">OUTRO</span>
                         </label>
-                        <label for="outro-check" class="anim-sub-label" title="Exit un-highlight animation after hold duration">
-                            <!-- Phosphor: ArrowSquareOut -->
-                            <svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor"><path d="M224,104a8,8,0,0,1-16,0V59.31l-66.34,66.35a8,8,0,0,1-11.32-11.32L196.69,48H152a8,8,0,0,1,0-16h72a8,8,0,0,1,8,8Zm-32,80a8,8,0,0,0-8,8v24H48V72H72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,72V216a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V192A8,8,0,0,0,192,184Z"/></svg>
-                            Outro Exit
+
+                        <button type="button" class="order-toggle-btn disabled" id="btn-outro-order" data-order="first" title="Exit Order: 1➔N or N➔1">
+                            <span id="order-label">1➔N</span>
+                        </button>
+
+                        <label class="chip-toggle" id="chip-markers" data-active="false" title="Marker Trigger Sync">
+                            <input type="checkbox" id="marker-sync-check">
+                            <!-- Lucide: Flag -->
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                            <span class="chip-label">MARKERS</span>
                         </label>
                     </div>
-                    <button type="button" class="order-toggle-btn disabled" id="btn-outro-order" data-order="first" title="Exit Order: First Line First (1➔N). Click to toggle: Last Line First (N➔1)">
-                        <span id="order-icon-first">
-                            <!-- Phosphor: SortAscending (Top to bottom) -->
-                            <svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor"><path d="M128,128a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16h72A8,8,0,0,1,128,128ZM48,72h56a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16Zm88,112H48a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16Zm85.66-21.66-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L176,169.37V48a8,8,0,0,1,16,0V169.37l18.34-18.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                        </span>
-                        <span id="order-icon-last" style="display:none;">
-                            <!-- Phosphor: SortDescending (Bottom to top) -->
-                            <svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor"><path d="M128,128a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16h72A8,8,0,0,1,128,128ZM48,72h88a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16Zm56,112H48a8,8,0,0,0,0,16h56a8,8,0,0,0,0-16Zm109.66-82.34a8,8,0,0,0-11.32,0L192,86.63V208a8,8,0,0,0,16,0V86.63l18.34,18.35a8,8,0,0,0,11.32-11.32l-32-32A8,8,0,0,0,213.66,101.66Z"/></svg>
-                        </span>
-                        <span id="order-label">1➔N</span>
+                </div>
+            </section>
+
+            <!-- 5. Actions Section -->
+            <section class="actions-card">
+                <div class="action-buttons-row">
+                    <button type="button" id="btn-smart-apply" class="primary-studio-btn" title="Apply highlight to paragraph or lines">
+                        <!-- Lucide: Zap -->
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        <span id="btn-label">Apply Highlight</span>
+                    </button>
+                    <button type="button" id="btn-clear" class="secondary-studio-btn" title="Remove highlights from the selected layer">
+                        <!-- Lucide: Trash2 -->
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        <span>Clear</span>
                     </button>
                 </div>
+            </section>
+        </div>
 
-                <div class="ctrl-row">
-                    <div class="ctrl-field">
-                        <label for="line-dur">
-                            <!-- Phosphor: Timer -->
-                            <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M128,40a96,96,0,1,0,96,96A96.11,96.11,0,0,0,128,40Zm0,176a80,80,0,1,1,80-80A80.09,80.09,0,0,1,128,216ZM173.66,90.34a8,8,0,0,1,0,11.32l-40,40a8,8,0,0,1-11.32-11.32l40-40A8,8,0,0,1,173.66,90.34ZM96,16a8,8,0,0,1,8-8h48a8,8,0,0,1,0,16H104A8,8,0,0,1,96,16Z"/></svg>
-                            In (s)
-                        </label>
-                        <div class="stepper-box">
-                            <input type="number" id="line-dur" value="0.35" step="0.05" min="0.05">
-                            <div class="stepper-arrows">
-                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">
-                                    <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,165.66a8,8,0,0,1-11.32,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg>
-                                </button>
-                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">
-                                    <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                                </button>
-                            </div>
+        <!-- ============================================================
+             TAB VIEW 2: PHRASE HIGHLIGHT (Interactive Multi-Selection)
+             ============================================================ -->
+        <div id="view-phrases" class="tab-view" style="display: none;">
+            <!-- Target Status for Phrases -->
+            <section class="studio-card">
+                <div class="target-strip">
+                    <span class="target-indicator-dot"></span>
+                    <span class="target-strip-label">LINKED:</span>
+                    <span id="phrase-target-name" class="target-strip-val">Select Text Layer in AE</span>
+                </div>
+            </section>
+
+            <!-- Interactive Words Board Card -->
+            <section class="studio-card">
+                <div class="card-section-header">
+                    <span class="card-section-title">
+                        <!-- Lucide: Bookmark -->
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                        Select Words to Highlight
+                    </span>
+                    <div class="tokens-header-actions">
+                        <span id="phrase-count-badge" class="tokens-badge">0 words selected</span>
+                        <button type="button" id="btn-phrase-clear-sel" class="mini-tool-btn" title="Clear word selection">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Live Clickable Word Tokens Board -->
+                <div id="tokens-board" class="tokens-board" dir="auto">
+                    <div class="tokens-empty-state">
+                        <span>Select a Text Layer in After Effects to load words</span>
+                    </div>
+                </div>
+
+                <!-- Applied Phrases Tray (Cumulative Multi-Color Highlights) -->
+                <div class="applied-phrases-card" id="applied-phrases-wrap" style="display: none;">
+                    <div class="applied-phrases-header">
+                        <span class="applied-phrases-title">Applied Phrases in AE</span>
+                        <span id="applied-phrases-count" class="applied-count-badge">0</span>
+                    </div>
+                    <div id="applied-phrases-list" class="applied-phrases-list">
+                        <!-- Dynamic badges populated by HS.PhraseManager -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phrase Appearance & Animation Card -->
+            <section class="studio-card">
+                <div class="card-section-header">
+                    <span class="card-section-title">
+                        <!-- Lucide: Palette -->
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                        Phrase Appearance
+                    </span>
+                </div>
+
+                <div class="fields-row">
+                    <div class="field-item">
+                        <label for="phrase-style-select">Shape</label>
+                        <div class="select-wrap">
+                            <select id="phrase-style-select">
+                                <option value="box" selected>Box</option>
+                                <option value="pill">Pill</option>
+                                <option value="marker">Marker</option>
+                                <option value="underline">Underline</option>
+                                <option value="outline">Outline</option>
+                            </select>
+                            <span class="select-caret">▾</span>
                         </div>
                     </div>
-                    <div class="ctrl-field disabled" id="out-time-col">
-                        <label for="out-time">
-                            <!-- Phosphor: HourglassSimple -->
-                            <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M200,80a15.86,15.86,0,0,0-5-11.66L149.34,24H208a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16h58.66L61,68.34A15.86,15.86,0,0,0,56,80v96a15.86,15.86,0,0,0,5,11.66L106.66,232H48a8,8,0,0,0,0,16H208a8,8,0,0,0,0-16H149.34L195,187.66A15.86,15.86,0,0,0,200,176ZM72,80V40H184V80l-44,44a16,16,0,0,0,0,22.63l44,44v45.37H72V190.63l44-44a16,16,0,0,0,0-22.63Z"/></svg>
-                            Out (s)
-                        </label>
-                        <div class="stepper-box">
-                            <input type="number" id="out-time" value="1.50" step="0.10" min="0.10" disabled>
-                            <div class="stepper-arrows">
-                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">
-                                    <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,165.66a8,8,0,0,1-11.32,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg>
-                                </button>
-                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">
-                                    <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                                </button>
-                            </div>
+
+                    <div class="field-item">
+                        <label for="phrase-motion-select">Animation</label>
+                        <div class="select-wrap">
+                            <select id="phrase-motion-select">
+                                <option value="typewriter" selected>Typewriter</option>
+                                <option value="wipe">Smooth Wipe</option>
+                                <option value="pop">Scale Pop</option>
+                                <option value="snap">Snap Jump</option>
+                            </select>
+                            <span class="select-caret">▾</span>
                         </div>
                     </div>
-                    <div class="ctrl-field" id="stagger-col">
-                        <label for="stagger" id="stagger-label">
-                            <!-- Phosphor: Clock -->
-                            <svg viewBox="0 0 256 256" width="11" height="11" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"/></svg>
-                            Gap (s)
-                        </label>
-                        <div class="stepper-box">
-                            <input type="number" id="stagger" value="0.00" step="0.02" min="0">
-                            <div class="stepper-arrows">
-                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">
-                                    <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,165.66a8,8,0,0,1-11.32,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg>
-                                </button>
-                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">
-                                    <svg viewBox="0 0 256 256" width="7" height="7" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>
-                                </button>
-                            </div>
+
+                    <div class="field-item color-item">
+                        <label for="phrase-color-input">Color</label>
+                        <div class="color-badge-wrap">
+                            <input type="color" id="phrase-color-input" value="#2ecc71">
+                            <span id="phrase-color-hex">#2ECC71</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Phrase Color Swatches -->
+                <div class="swatches-bar" id="phrase-swatches">
+                    <button type="button" class="swatch-btn active" data-color="#2ecc71" style="background:#2ecc71" title="Emerald Green"></button>
+                    <button type="button" class="swatch-btn" data-color="#ffd13b" style="background:#ffd13b" title="Amber Gold"></button>
+                    <button type="button" class="swatch-btn" data-color="#00b4d8" style="background:#00b4d8" title="Cyan Accent"></button>
+                    <button type="button" class="swatch-btn" data-color="#ff3b5c" style="background:#ff3b5c" title="Coral Red"></button>
+                    <button type="button" class="swatch-btn" data-color="#a855f7" style="background:#a855f7" title="Purple Glow"></button>
+                    <button type="button" class="swatch-btn" data-color="#ffffff" style="background:#ffffff" title="Pure White"></button>
+                </div>
+
+                <div class="metrics-grid-2x2">
+                    <div class="precision-input-box">
+                        <label class="scrub-label" data-target="phrase-pad-x" title="Phrase horizontal padding">
+                            <!-- Lucide: MoveHorizontal -->
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 8 22 12 18 16"/><polyline points="6 8 2 12 6 16"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                            <span class="scrub-text">Pad X</span>
+                        </label>
+                        <div class="input-val-wrap">
+                            <input type="number" id="phrase-pad-x" value="10" min="0" max="150" step="1">
+                            <span class="unit-tag">px</span>
+                        </div>
+                        <div class="stepper-actions">
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                        </div>
+                    </div>
+
+                    <div class="precision-input-box">
+                        <label class="scrub-label" data-target="phrase-pad-y" title="Phrase vertical padding">
+                            <!-- Lucide: MoveVertical -->
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 18 12 22 16 18"/><polyline points="8 6 12 2 16 6"/><line x1="12" x2="12" y1="2" y2="22"/></svg>
+                            <span class="scrub-text">Pad Y</span>
+                        </label>
+                        <div class="input-val-wrap">
+                            <input type="number" id="phrase-pad-y" value="4" min="0" max="100" step="1">
+                            <span class="unit-tag">px</span>
+                        </div>
+                        <div class="stepper-actions">
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phrase Motion Dynamics & Outro Controls (Phase 3) -->
+                <div class="phrase-timing-row">
+                    <label class="chip-toggle" id="chip-phrase-outro" data-active="false" title="Enable auto-outro fade/exit for highlighted phrase">
+                        <input type="checkbox" id="phrase-outro-check">
+                        <!-- Lucide: LogOut -->
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <span class="chip-label">OUTRO</span>
+                    </label>
+
+                    <label class="chip-toggle" id="chip-phrase-seq" data-active="false" title="Sequential: animate multiple phrases one after another">
+                        <input type="checkbox" id="phrase-seq-check">
+                        <!-- Lucide: ArrowDown -->
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="18 14 12 20 6 14"/></svg>
+                        <span class="chip-label">SEQ</span>
+                    </label>
+
+                    <div class="precision-input-box disabled" id="phrase-hold-col">
+                        <label class="scrub-label" data-target="phrase-hold-time" title="Duration phrase stays visible before outro">
+                            <!-- Lucide: Hourglass -->
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+                            <span class="scrub-text">Hold</span>
+                        </label>
+                        <div class="input-val-wrap">
+                            <input type="number" id="phrase-hold-time" value="1.20" min="0.10" max="10.0" step="0.10" disabled>
+                            <span class="unit-tag">s</span>
+                        </div>
+                        <div class="stepper-actions">
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phrase Actions Card -->
+            <section class="actions-card">
+                <div class="action-buttons-row">
+                    <button type="button" id="btn-apply-phrase" class="primary-studio-btn" title="Build highlight container for the selected words/phrases directly in After Effects">
+                        <!-- Lucide: Sparkles -->
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                        <span>Apply Phrase Highlight</span>
+                    </button>
+                    <button type="button" id="btn-clear-phrase" class="secondary-studio-btn" title="Remove phrase highlights from active layer">
+                        <!-- Lucide: Trash2 -->
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Save Preset Modal Dialog (Phase 4) -->
+        <div class="preset-modal-overlay" id="preset-modal" style="display: none;">
+            <div class="preset-modal-content">
+                <div class="preset-modal-header">
+                    <div class="preset-modal-title">
+                        <!-- Lucide: BookmarkPlus -->
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/><line x1="12" x2="12" y1="7" y2="13"/><line x1="9" x2="15" y1="10" y2="10"/></svg>
+                        <span>Save Custom Preset</span>
+                    </div>
+                    <button type="button" class="modal-close-btn" id="btn-close-preset-modal" title="Close">✕</button>
+                </div>
+                <div class="preset-modal-body">
+                    <label class="modal-field-label" for="preset-name-input">Preset Name</label>
+                    <input type="text" id="preset-name-input" class="modal-text-input" placeholder="e.g. My Neon Box" maxlength="20">
+                    <div class="modal-preview-chip">
+                        <span class="modal-preview-color" id="modal-preset-color-preview"></span>
+                        <span class="modal-preview-details" id="modal-preset-details">Box • Pad 10 • Typewriter</span>
+                    </div>
+                </div>
+                <div class="preset-modal-footer">
+                    <button type="button" class="modal-btn secondary" id="btn-cancel-preset">Cancel</button>
+                    <button type="button" class="modal-btn primary" id="btn-confirm-save-preset">Save Preset</button>
                 </div>
             </div>
         </div>
 
-        <!-- Action Button -->
-        <div class="action-section">
-            <button type="button" id="btn-smart-apply" class="primary-btn" title="Click: Apply / Update Highlight (Alt+Click or Right-Click: Clear)">
-                <!-- Phosphor: Lightning -->
-                <svg viewBox="0 0 256 256" width="13" height="13" fill="currentColor"><path d="M213.85,125.46l-112,120a8,8,0,0,1-13.69-7l14.66-73.33L45.19,143.49a8,8,0,0,1-3-13l112-120a8,8,0,0,1,13.69,7L153.18,90.9l57.63,21.61a8,8,0,0,1,3,12.95Z"/></svg>
-                <span id="btn-label">Apply Highlight</span>
-            </button>
-            <div class="action-hint">Click: Apply / Update &nbsp;·&nbsp; Alt+Click: Clear</div>
-        </div>
-
-        <!-- Status -->
+        <!-- Global Status Bar (Shared across all views) -->
         <div id="status-bar" class="status-bar">
             <span class="status-dot"></span>
-            <span id="status-text">Ready</span>
+            <span id="status-text" title="Current Status">Ready</span>
         </div>
 
-        <!-- Debug Section -->
+        <!-- Collapsible Debug Console -->
         <div class="debug-section">
             <button type="button" id="btn-debug" class="debug-toggle">
-                <!-- Phosphor: Terminal -->
-                <svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor"><path d="M120,137,48,201A8,8,0,1,1,37.95,189L101.33,137,38,85A8,8,0,1,1,48,73l72,64A8,8,0,0,1,120,137Zm96,55H120a8,8,0,0,0,0,16h96a8,8,0,0,0,0-16Z"/></svg>
+                <!-- Lucide: Terminal -->
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
                 Debug Console
             </button>
             <div id="debug-panel" class="debug-panel" style="display:none;">
