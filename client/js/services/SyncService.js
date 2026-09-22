@@ -27,9 +27,25 @@
                 if (!resStr || resStr === "EvalScript error.") return;
                 try {
                     var state = JSON.parse(resStr);
+
+                    // Live Composition & FPS Synchronization
+                    if (state) {
+                        if (typeof state.fps === "number" && state.fps > 0) {
+                            HS.State.fps = state.fps;
+                            HS.State.frameDuration = state.frameDuration || (1 / state.fps);
+                            HS.State.hasComp = !!state.hasComp;
+                            HS.State.compName = state.compName || "";
+                            HS.Sync.updateFpsUI(state.fps, state.hasComp, state.compName);
+                        } else if (state.hasComp === false) {
+                            HS.State.hasComp = false;
+                            HS.Sync.updateFpsUI(HS.State.fps || 30, false, "");
+                        }
+                    }
+
                     if (state && state.ok) {
                         var layerChanged = (state.layerName && state.layerName !== HS.State.lastSyncedLayer);
                         if (state.layerName) HS.State.lastSyncedLayer = state.layerName;
+                        HS.State.hasHighlight = !!state.hasHighlight;
 
                         // Target Info Strip
                         if (HS.DOM && HS.DOM.targetInfoName) {
@@ -62,13 +78,45 @@
                         }
 
                         // Tokens board sync for Phrase Highlight tab (only if text was fetched)
-                        if (typeof state.text === "string" && state.text.length > 0) {
+                        if (typeof state.text === "string") {
                             if (HS.PhraseManager && HS.PhraseManager.renderBoard) {
                                 HS.PhraseManager.renderBoard(state.text, state.layerName);
                                 HS.PhraseManager.syncAppliedPhrases();
                             }
                         }
+
+                        // Live Timing Markers Sync to 2-Row Matrix
+                        if (state.timingMarkers && (!isRecentEdit || layerChanged || force)) {
+                            var tm = state.timingMarkers;
+                            if (HS.TimeEngine) {
+                                if (typeof tm.inPoint === "number" && HS.DOM && HS.DOM.timeInPoint && document.activeElement !== HS.DOM.timeInPoint) {
+                                    HS.DOM.timeInPoint.value = HS.TimeEngine.fromSeconds(tm.inPoint, "tc");
+                                    HS.Controls.updateTimeInputTooltip(HS.DOM.timeInPoint);
+                                }
+                                if (typeof tm.outPoint === "number" && HS.DOM && HS.DOM.timeOutPoint && document.activeElement !== HS.DOM.timeOutPoint) {
+                                    HS.DOM.timeOutPoint.value = HS.TimeEngine.fromSeconds(tm.outPoint, "tc");
+                                    HS.Controls.updateTimeInputTooltip(HS.DOM.timeOutPoint);
+                                }
+                                if (typeof tm.inDur === "number" && HS.DOM && HS.DOM.lineDurInput && document.activeElement !== HS.DOM.lineDurInput) {
+                                    HS.DOM.lineDurInput.value = HS.TimeEngine.fromSeconds(tm.inDur, "tc");
+                                    HS.Controls.updateTimeInputTooltip(HS.DOM.lineDurInput);
+                                }
+                                if (typeof tm.outDur === "number" && HS.DOM && HS.DOM.outTimeInput && document.activeElement !== HS.DOM.outTimeInput) {
+                                    HS.DOM.outTimeInput.value = HS.TimeEngine.fromSeconds(tm.outDur, "tc");
+                                    HS.Controls.updateTimeInputTooltip(HS.DOM.outTimeInput);
+                                }
+                            }
+                            if (typeof tm.hasOutro === "boolean" && HS.DOM && HS.DOM.outroCheck && document.activeElement !== HS.DOM.outroCheck) {
+                                HS.DOM.outroCheck.checked = tm.hasOutro;
+                                HS.Controls.syncChipClasses();
+                            }
+                            if (HS.DOM && HS.DOM.markerSyncCheck && !HS.DOM.markerSyncCheck.checked) {
+                                HS.DOM.markerSyncCheck.checked = true;
+                                HS.Controls.syncChipClasses();
+                            }
+                        }
                     } else {
+                        HS.State.hasHighlight = false;
                         if (HS.DOM && HS.DOM.targetInfoName) {
                             HS.DOM.targetInfoName.textContent = "Select Text or Shape Layer";
                             HS.DOM.targetInfoName.title = "";
@@ -80,6 +128,28 @@
                     }
                 } catch (e) {}
             });
+        },
+
+        updateFpsUI: function (fps, hasComp, compName) {
+            var fpsFormatted = Math.round(fps * 1000) / 1000;
+            var label = fpsFormatted + " FPS";
+            var title = hasComp
+                ? ("Active Comp: " + (compName || "Composition") + " (" + fpsFormatted + " FPS)")
+                : ("No Active Comp detected. Defaulting to " + fpsFormatted + " FPS");
+
+            if (HS.DOM) {
+                [HS.DOM.targetFpsBadge, HS.DOM.phraseFpsBadge].forEach(function (badge) {
+                    if (badge) {
+                        badge.textContent = label;
+                        badge.title = title;
+                        badge.classList.toggle("no-comp", !hasComp);
+                    }
+                });
+            }
+
+            if (HS.Controls && typeof HS.Controls.updateTimeInputsForFps === "function") {
+                HS.Controls.updateTimeInputsForFps(fps);
+            }
         },
 
         initPolling: function () {

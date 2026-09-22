@@ -23,6 +23,11 @@
             this.modalPresetDetails = document.getElementById("modal-preset-details");
             this.btnCancelPreset = document.getElementById("btn-cancel-preset");
             this.btnConfirmSavePreset = document.getElementById("btn-confirm-save-preset");
+            this.deletePresetModal = document.getElementById("delete-preset-modal");
+            this.btnCloseDeletePresetModal = document.getElementById("btn-close-delete-preset-modal");
+            this.deletePresetMsg = document.getElementById("delete-preset-msg");
+            this.btnCancelDeletePreset = document.getElementById("btn-cancel-delete-preset");
+            this.btnConfirmDeletePreset = document.getElementById("btn-confirm-delete-preset");
             this.tabBtnParagraph = document.getElementById("tab-btn-paragraph");
             this.tabBtnPhrases = document.getElementById("tab-btn-phrases");
             this.viewParagraph = document.getElementById("view-paragraph");
@@ -30,6 +35,7 @@
 
             // Tab 1: Paragraph & Lines
             this.targetInfoName = document.getElementById("target-info-name");
+            this.targetFpsBadge = document.getElementById("target-fps-badge");
             this.styleSelect = document.getElementById("style-select");
             this.alignSelect = document.getElementById("align-select");
             this.colorPicker = document.getElementById("color-picker");
@@ -43,6 +49,9 @@
             this.animControls = document.getElementById("anim-controls");
             this.motionSelect = document.getElementById("motion-select");
             this.revealUnitSelect = document.getElementById("reveal-unit-select");
+            this.timeInPoint = document.getElementById("time-in-point");
+            this.timeOutPoint = document.getElementById("time-out-point");
+            this.timeOutPointBox = document.getElementById("time-out-point-box");
             this.lineDurInput = document.getElementById("line-dur");
             this.outTimeInput = document.getElementById("out-time");
             this.outTimeCol = document.getElementById("out-time-col");
@@ -50,14 +59,21 @@
             this.staggerLabel = document.getElementById("stagger-label");
             this.sequentialCheck = document.getElementById("sequential-check");
             this.outroCheck = document.getElementById("outro-check");
-            this.btnOutroOrder = document.getElementById("btn-outro-order");
-            this.orderLabel = document.getElementById("order-label");
+            this.outroDirectionBar = document.getElementById("outro-direction-bar");
+            this.btnTextOutroOrder = document.getElementById("btn-text-outro-order");
+            this.textOrderLabel = document.getElementById("text-order-label");
+            this.btnSyncOutroOrder = document.getElementById("btn-sync-outro-order");
+            this.btnBoxOutroOrder = document.getElementById("btn-box-outro-order");
+            this.boxOrderLabel = document.getElementById("box-order-label");
             this.markerSyncCheck = document.getElementById("marker-sync-check");
+            this.btnPlaceMarkers = document.getElementById("btn-place-markers");
+            this.btnLiveUpdate = document.getElementById("btn-live-update");
             this.btnSmartApply = document.getElementById("btn-smart-apply");
             this.btnClear = document.getElementById("btn-clear");
 
             // Tab 2: Phrase Highlight
             this.phraseTargetName = document.getElementById("phrase-target-name");
+            this.phraseFpsBadge = document.getElementById("phrase-fps-badge");
             this.phraseCountBadge = document.getElementById("phrase-count-badge");
             this.phraseCharBadge = document.getElementById("phrase-char-badge");
             this.btnPhraseClearSel = document.getElementById("btn-phrase-clear-sel");

@@ -80,6 +80,7 @@
                 <span class="target-indicator-dot"></span>
                 <span class="target-strip-label">TARGET:</span>
                 <span id="target-info-name" class="target-strip-val">Select Text Layer</span>
+                <span id="target-fps-badge" class="target-fps-badge" title="Active Composition Frame Rate">30 FPS</span>
             </div>
 
             <!-- 3. Appearance & Precision Metrics Section -->
@@ -302,73 +303,99 @@
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="18 14 12 20 6 14"/></svg>
                             </label>
 
-                            <label class="square-icon-btn chip-toggle" id="chip-outro" data-active="false" title="Outro Exit Animation (حركة خروج عند النهاية)">
-                                <input type="checkbox" id="outro-check">
+                            <label class="square-icon-btn chip-toggle active" id="chip-outro" data-active="true" title="Outro Exit Animation (حركة خروج عند النهاية)">
+                                <input type="checkbox" id="outro-check" checked>
                                 <!-- Lucide: LogOut -->
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                             </label>
 
-                            <button type="button" class="square-icon-btn order-toggle-btn disabled" id="btn-outro-order" data-order="first" title="Exit Order: 1➔N or N➔1 (ترتيب الخروج)">
-                                <span id="order-label" style="font-size: 8px; font-weight: 800; line-height: 1;">1➔N</span>
-                            </button>
-
-                            <label class="square-icon-btn chip-toggle" id="chip-markers" data-active="false" title="Marker Trigger Sync (مزامنة الماركرز مع الصوت)">
+                            <label class="square-icon-btn chip-toggle" id="chip-markers" data-active="false" title="Marker Trigger Sync (مزامنة الماركرز الحية)">
                                 <input type="checkbox" id="marker-sync-check">
                                 <!-- Lucide: Flag -->
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                             </label>
+
+                            <button type="button" class="square-icon-btn" id="btn-place-markers" title="Place / Refresh Timing Markers on Text Layer (وضع ماركرز التوقيت على طبقة النص)">
+                                <!-- Lucide: BookmarkPlus -->
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/><line x1="12" x2="12" y1="7" y2="13"/><line x1="9" x2="15" y1="10" y2="10"/></svg>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Timing Boxes: In, Out, Stagger -->
-                    <div class="timing-grid">
-                        <div class="precision-input-box timing-box" id="line-dur-box">
-                            <label class="scrub-label" data-target="line-dur" title="Intro animation duration">
-                                <!-- Lucide: Clock -->
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                <span class="scrub-text">In</span>
-                            </label>
-                            <div class="input-val-wrap">
-                                <input type="number" id="line-dur" value="0.35" min="0.05" max="5.0" step="0.05">
-                                <span class="unit-tag">s</span>
+                    <!-- Timing Matrix (2-Row Grid for Markers & In/Out Lifecycle) -->
+                    <div class="timing-matrix-wrap">
+                        <!-- Row 1: Absolute Points on the Timeline (M1 & M3) -->
+                        <div class="timing-matrix-row">
+                            <!-- Field 1: Start Time (M1: وقت بداية التأثير) -->
+                            <div class="precision-input-box timing-matrix-box" id="time-in-point-box">
+                                <label class="scrub-label" data-target="time-in-point" title="Start of Effect (M1: وقت بداية التأثير على التايم لاين)">
+                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    <span class="scrub-text">In Point</span>
+                                </label>
+                                <div class="input-val-wrap">
+                                    <input type="text" id="time-in-point" class="time-input timecode-input" value="00:00:00" spellcheck="false" autocomplete="off">
+                                    <span class="unit-tag tc-tag">TC</span>
+                                </div>
+                                <div class="stepper-actions">
+                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
+                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                </div>
                             </div>
-                            <div class="stepper-actions">
-                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
-                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+
+                            <!-- Field 2: Outro Start Time (M3: وقت بداية النهاية) -->
+                            <div class="precision-input-box timing-matrix-box" id="time-out-point-box">
+                                <label class="scrub-label" data-target="time-out-point" title="Start of Outro (M3: وقت بداية النهاية على التايم لاين)">
+                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                    <span class="scrub-text">Out Point</span>
+                                </label>
+                                <div class="input-val-wrap">
+                                    <input type="text" id="time-out-point" class="time-input timecode-input" value="00:02:15" spellcheck="false" autocomplete="off">
+                                    <span class="unit-tag tc-tag">TC</span>
+                                </div>
+                                <div class="stepper-actions">
+                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
+                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="precision-input-box timing-box disabled" id="out-time-col">
-                            <label class="scrub-label" data-target="out-time" title="Outro exit animation duration">
-                                <!-- Lucide: Hourglass -->
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
-                                <span class="scrub-text">Out</span>
-                            </label>
-                            <div class="input-val-wrap">
-                                <input type="number" id="out-time" value="1.50" min="0.10" max="5.0" step="0.10" disabled>
-                                <span class="unit-tag">s</span>
+                        <!-- Row 2: Lifespans / Durations (M2-M1 and M4-M3) -->
+                        <div class="timing-matrix-row">
+                            <!-- Field 3: Intro Duration (عمر البداية: M2 - M1) -->
+                            <div class="precision-input-box timing-matrix-box" id="line-dur-box">
+                                <label class="scrub-label" data-target="line-dur" title="Intro Lifespan (عمر البداية: المدة بين الماركر 1 والماركر 2)">
+                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    <span class="scrub-text">In Dur</span>
+                                </label>
+                                <div class="input-val-wrap">
+                                    <input type="text" id="line-dur" class="time-input timecode-input" value="00:00:15" spellcheck="false" autocomplete="off">
+                                    <span class="unit-tag tc-tag">TC</span>
+                                </div>
+                                <div class="stepper-actions">
+                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
+                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                </div>
                             </div>
-                            <div class="stepper-actions">
-                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
-                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+
+                            <!-- Field 4: Outro Duration (عمر النهاية: M4 - M3) -->
+                            <div class="precision-input-box timing-matrix-box" id="out-time-col">
+                                <label class="scrub-label" data-target="out-time" title="Outro Lifespan (عمر النهاية: المدة بين الماركر 3 والماركر 4)">
+                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+                                    <span class="scrub-text">Out Dur</span>
+                                </label>
+                                <div class="input-val-wrap">
+                                    <input type="text" id="out-time" class="time-input timecode-input" value="00:00:10" spellcheck="false" autocomplete="off">
+                                    <span class="unit-tag tc-tag">TC</span>
+                                </div>
+                                <div class="stepper-actions">
+                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
+                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="precision-input-box timing-box" id="stagger-col">
-                            <label class="scrub-label" id="stagger-label" data-target="stagger" title="Line sequence delay">
-                                <!-- Lucide: ArrowDown -->
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                                <span class="scrub-text">Gap</span>
-                            </label>
-                            <div class="input-val-wrap">
-                                <input type="number" id="stagger" value="0.00" min="0.0" max="2.0" step="0.02">
-                                <span class="unit-tag">s</span>
-                            </div>
-                            <div class="stepper-actions">
-                                <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
-                                <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
-                            </div>
-                        </div>
+                        <!-- Preserved for backward compatibility with presets / stagger -->
+                        <input type="hidden" id="stagger" value="00:00:00">
                     </div>
                 </div>
             </section>
@@ -376,14 +403,35 @@
             <!-- 5. Actions Section -->
             <section class="actions-card">
                 <div class="action-buttons-row">
-                    <button type="button" id="btn-smart-apply" class="square-icon-btn apply-btn" title="Apply Highlight (تطبيق التظليل على النص)">
-                        <!-- Lucide: Zap -->
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    </button>
-                    <button type="button" id="btn-clear" class="square-icon-btn clear-btn danger" title="Clear Highlights (مسح تظليلات الطبقة المحددة)">
-                        <!-- Lucide: Trash2 -->
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                    </button>
+                    <!-- Left: Outro Direction & Sync Cluster (Pure Square Icon Buttons with Enhanced Arrows) -->
+                    <div class="icon-btn-group" id="outro-direction-bar" title="Outro Direction & Sync (ترتيب واتجاه حركة الخروج)">
+                        <button type="button" class="square-icon-btn" id="btn-text-outro-order" data-order="first" title="Text Exit Direction: Forward (→) or Reverse (←)">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 7h7M6 7v10"/><path d="M12 12h9.5m-4.5-5 4.5 5-4.5 5"/></svg>
+                        </button>
+                        <button type="button" class="square-icon-btn active" id="btn-sync-outro-order" data-synced="true" title="Sync Containers to Text (تزامن خروج الحاويات مع النص تلقائياً)">
+                            <!-- Lucide: Link2 -->
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        </button>
+                        <button type="button" class="square-icon-btn disabled" id="btn-box-outro-order" data-order="first" title="Container Exit Direction (اتجاه خروج الحاويات الملونة)" disabled>
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="7" height="10" rx="1.5"/><path d="M12 12h9.5m-4.5-5 4.5 5-4.5 5"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Right: Main Action Buttons (Live Update, Apply & Clear) -->
+                    <div class="action-main-btns">
+                        <button type="button" id="btn-live-update" class="square-icon-btn active" data-active="true" title="Live Auto-Update (تحديث مباشر تلقائي مع كل تغيير في الواجهة)">
+                            <!-- Lucide: RefreshCw -->
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                        </button>
+                        <button type="button" id="btn-smart-apply" class="square-icon-btn apply-btn" title="Apply Highlight (تطبيق التظليل على النص)">
+                            <!-- Lucide: Zap -->
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </button>
+                        <button type="button" id="btn-clear" class="square-icon-btn clear-btn danger" title="Clear Highlights (مسح تظليلات الطبقة المحددة)">
+                            <!-- Lucide: Trash2 -->
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        </button>
+                    </div>
                 </div>
             </section>
         </div>
@@ -398,6 +446,7 @@
                     <span class="target-indicator-dot"></span>
                     <span class="target-strip-label">LINKED:</span>
                     <span id="phrase-target-name" class="target-strip-val">Select Text Layer in AE</span>
+                    <span id="phrase-fps-badge" class="target-fps-badge" title="Active Composition Frame Rate">30 FPS</span>
                 </div>
             </section>
 
@@ -591,12 +640,12 @@
                             <span class="scrub-text">Hold</span>
                         </label>
                         <div class="input-val-wrap">
-                            <input type="number" id="phrase-hold-time" value="1.20" min="0.10" max="10.0" step="0.10" disabled>
-                            <span class="unit-tag">s</span>
+                            <input type="text" id="phrase-hold-time" class="time-input" value="1:05" disabled spellcheck="false" autocomplete="off">
+                            <button type="button" class="unit-tag unit-toggle-btn" title="Click to cycle time format: s:f ➔ f ➔ s">s:f</button>
                         </div>
                         <div class="stepper-actions">
-                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase">▲</button>
-                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease">▼</button>
+                            <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
+                            <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
                         </div>
                     </div>
                 </div>
@@ -643,6 +692,27 @@
             </div>
         </div>
 
+        <!-- Delete Preset Confirmation Modal Dialog -->
+        <div class="preset-modal-overlay" id="delete-preset-modal" style="display: none;">
+            <div class="preset-modal-content">
+                <div class="preset-modal-header">
+                    <div class="preset-modal-title">
+                        <!-- Lucide: Trash2 -->
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        <span>Delete Custom Preset</span>
+                    </div>
+                    <button type="button" class="modal-close-btn" id="btn-close-delete-preset-modal" title="Close">✕</button>
+                </div>
+                <div class="preset-modal-body">
+                    <p id="delete-preset-msg" style="font-size:11px; color:var(--text-bright, #e8e8f2); margin:4px 0 12px 0; line-height:1.5;">Are you sure you want to delete this preset?</p>
+                </div>
+                <div class="preset-modal-footer">
+                    <button type="button" class="modal-btn secondary" id="btn-cancel-delete-preset">Cancel</button>
+                    <button type="button" class="modal-btn primary danger" id="btn-confirm-delete-preset" style="background:#d46a74; color:#fff; border-color:#d46a74;">Delete</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Global Status Bar (Shared across all views) -->
         <div id="status-bar" class="status-bar">
             <span class="status-dot"></span>
@@ -675,6 +745,7 @@
     <!-- 2. Core Foundation Layer -->
     <script src="js/core/Config.js"></script>
     <script src="js/core/State.js"></script>
+    <script src="js/core/TimeEngine.js"></script>
     <script src="js/core/DOM.js"></script>
     <script src="js/core/Bridge.js"></script>
 

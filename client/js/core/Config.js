@@ -23,9 +23,12 @@
             sequential: true,
             lineDuration: 0.35,
             stagger: 0.00,
-            outro: false,
+            outro: true,
             outTime: 1.50,
             outroOrder: "first",
+            textOutroOrder: "first",
+            boxOutroOrder: "first",
+            syncOutro: true,
             scope: "all",
             syncMarkers: false
         },

@@ -94,8 +94,9 @@
             HS.DOM.tokensBoard.innerHTML = "";
 
             var lines = rawText.split(/\r\n|\r|\n/);
-            var searchCursor = 0;
+            var lineStartOffset = 0;
             var tokenIdx = 0;
+            var frag = document.createDocumentFragment();
 
             for (var li = 0; li < lines.length; li++) {
                 var lineText = lines[li];
@@ -104,10 +105,8 @@
 
                 while ((match = wordRegex.exec(lineText)) !== null) {
                     var wordStr = match[0];
-                    var exactPos = rawText.indexOf(wordStr, searchCursor);
-                    if (exactPos === -1) exactPos = searchCursor;
+                    var exactPos = lineStartOffset + match.index;
                     var exactEnd = exactPos + wordStr.length;
-                    searchCursor = exactEnd;
 
                     var tokenObj = {
                         index: tokenIdx,
@@ -200,16 +199,26 @@
                         });
                     })(tokenIdx, btn);
 
-                    HS.DOM.tokensBoard.appendChild(btn);
+                    frag.appendChild(btn);
                     tokenIdx++;
                 }
 
                 if (li < lines.length - 1) {
                     var brEl = document.createElement("div");
                     brEl.className = "token-line-break";
-                    HS.DOM.tokensBoard.appendChild(brEl);
+                    frag.appendChild(brEl);
+
+                    // Advance lineStartOffset: length of line + length of delimiter
+                    lineStartOffset += lineText.length;
+                    if (rawText.substring(lineStartOffset, lineStartOffset + 2) === "\r\n") {
+                        lineStartOffset += 2;
+                    } else if (rawText.charAt(lineStartOffset) === "\r" || rawText.charAt(lineStartOffset) === "\n") {
+                        lineStartOffset += 1;
+                    }
                 }
             }
+
+            HS.DOM.tokensBoard.appendChild(frag);
 
             HS.PhraseManager.updateBadge();
             HS.PhraseManager.syncAppliedPhrases();
@@ -348,7 +357,7 @@
         removePhrase: function (phraseId) {
             HS.setStatus("Removing phrase highlight...");
             HS.Bridge.ensureLoaded(function () {
-                HS.Bridge.eval("$._smartHighlighter.removeSinglePhrase('" + phraseId + "')", function (res) {
+                HS.Bridge.eval("$._smartHighlighter.removeSinglePhrase(" + JSON.stringify(phraseId) + ")", function (res) {
                     if (res && res.indexOf("SUCCESS") !== -1) {
                         HS.showReport(res);
                         HS.PhraseManager.syncAppliedPhrases();

@@ -29,6 +29,13 @@ $._smartHighlighter.clearDebugLog = function () {
     return "Log cleared.";
 };
 
+// دالة إغلاق مجموعة التراجع الآمنة لمنع أخطاء Undo Group المزدوجة أو المفتوحة
+$._smartHighlighter.safeEndUndoGroup = function () {
+    try {
+        app.endUndoGroup();
+    } catch (eGrp) {}
+};
+
 // محاكي ومحول JSON للتوافقية الكاملة مع محركات ExtendScript القديمة (ES3)
 $._smartHighlighter.parseJSON = function (str) {
     try {
@@ -39,15 +46,24 @@ $._smartHighlighter.parseJSON = function (str) {
     }
 };
 
+// دالة تهريب سلاسل النصوص المتوافقة مع معايير JSON (ECMA-262) لمنع أخطاء التحليل
+$._smartHighlighter.escapeJSON = function (s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\r/g, "\\r")
+        .replace(/\n/g, "\\n")
+        .replace(/\t/g, "\\t")
+        .replace(/[\b]/g, "\\b")
+        .replace(/\f/g, "\\f");
+};
+
 $._smartHighlighter.stringifyJSON = function (val) {
     if (val === null || val === undefined) return "null";
     if (typeof val === "number" || typeof val === "boolean") return String(val);
     if (typeof val === "string") {
-        return '"' + String(val).replace(/\\/g, "\\\\")
-                                .replace(/"/g, '\\"')
-                                .replace(/\n/g, "\\n")
-                                .replace(/\r/g, "\\r")
-                                .replace(/\t/g, "\\t") + '"';
+        return '"' + $._smartHighlighter.escapeJSON(val) + '"';
     }
     if (val instanceof Array) {
         var aRes = [];
@@ -84,7 +100,7 @@ if (typeof JSON === "undefined") {
 
 // تشفير النصوص للتعليقات والميتا داتا بأمان
 $._smartHighlighter.escMeta = function (s) {
-    return String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n");
+    return $._smartHighlighter.escapeJSON(s);
 };
 
 // فحص وجود الحروف العربية لتحديد اتجاه النص أوتوماتيكياً

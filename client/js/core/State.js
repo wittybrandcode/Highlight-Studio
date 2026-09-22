@@ -12,6 +12,10 @@
         scope: "all",               // "all" | "line"
         mainTab: "paragraph",       // "paragraph" | "phrases"
         outroOrder: "first",        // "first" (1->N) | "last" (N->1)
+        textOutroOrder: "first",    // "first" (1->N) | "last" (N->1)
+        boxOutroOrder: "first",     // "first" (1->N) | "last" (N->1)
+        syncOutro: true,            // true (containers follow text) | false (independent)
+        liveUpdate: true,           // true (auto push changes to AE) | false (manual push via lightning bolt)
         lastUserInteraction: 0,
         lastSyncedLayer: "",
         lastTokensRawText: null,
@@ -20,7 +24,12 @@
         lastClickedTokenIndex: -1,
         isDraggingTokenSelect: false,
         dragSelectActive: true,
-        appliedPhrases: []
+        appliedPhrases: [],
+        hasHighlight: false,
+        fps: 30,
+        frameDuration: 1 / 30,
+        compName: "",
+        hasComp: false
     };
 
     // Mark user interaction timestamp to prevent background polling overwrites

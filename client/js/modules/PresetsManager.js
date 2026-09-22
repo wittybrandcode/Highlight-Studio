@@ -23,11 +23,46 @@
             HS.Presets.initEvents();
         },
 
+        sanitizePreset: function (raw) {
+            if (!raw || typeof raw !== "object") return null;
+            return {
+                name: String(raw.name || "Custom Preset").substring(0, 24),
+                color: (typeof raw.color === "string" && raw.color.charAt(0) === "#") ? raw.color : "#3C4BB9",
+                style: String(raw.style || "box"),
+                motion: String(raw.motion || "typewriter"),
+                revealUnit: String(raw.revealUnit || "chars"),
+                padX: (typeof raw.padX === "number") ? raw.padX : 10,
+                padY: (typeof raw.padY === "number") ? raw.padY : 10,
+                round: (typeof raw.round === "number") ? raw.round : 0,
+                opacity: (typeof raw.opacity === "number") ? raw.opacity : 100,
+                dur: (typeof raw.dur === "number") ? raw.dur : 0.35,
+                stagger: (typeof raw.stagger === "number") ? raw.stagger : 0,
+                sequential: (typeof raw.sequential === "boolean") ? raw.sequential : true,
+                outro: (typeof raw.outro === "boolean") ? raw.outro : false,
+                outTime: (typeof raw.outTime === "number") ? raw.outTime : 1.2
+            };
+        },
+
         loadFromStorage: function () {
             try {
                 var raw = localStorage.getItem(HS.Presets.STORAGE_KEY);
                 if (raw) {
-                    HS.Presets.custom = JSON.parse(raw);
+                    var parsed = JSON.parse(raw);
+                    var cleanCustom = {};
+                    if (parsed && typeof parsed === "object") {
+                        for (var k in parsed) {
+                            if (parsed.hasOwnProperty(k)) {
+                                var s = HS.Presets.sanitizePreset(parsed[k].data || parsed[k]);
+                                if (s) {
+                                    cleanCustom[k] = {
+                                        name: (parsed[k].name || s.name),
+                                        data: s
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    HS.Presets.custom = cleanCustom;
                 }
             } catch (e) {
                 console.warn("[Highlight-Studio] Could not load presets:", e);
@@ -227,8 +262,8 @@
             if (HS.DOM.padYInput && typeof p.padY === "number") HS.DOM.padYInput.value = p.padY;
             if (HS.DOM.roundInput && typeof p.round === "number") HS.DOM.roundInput.value = p.round;
             if (HS.DOM.opacityInput && typeof p.opacity === "number") HS.DOM.opacityInput.value = p.opacity;
-            if (HS.DOM.lineDurInput && typeof p.dur === "number") HS.DOM.lineDurInput.value = p.dur;
-            if (HS.DOM.staggerInput && typeof p.stagger === "number") HS.DOM.staggerInput.value = p.stagger;
+            if (HS.DOM.lineDurInput && typeof p.dur === "number") HS.DOM.lineDurInput.value = HS.TimeEngine ? HS.TimeEngine.fromSeconds(p.dur) : p.dur;
+            if (HS.DOM.staggerInput && typeof p.stagger === "number") HS.DOM.staggerInput.value = HS.TimeEngine ? HS.TimeEngine.fromSeconds(p.stagger) : p.stagger;
             if (p.style && HS.DOM.styleSelect) HS.DOM.styleSelect.value = p.style;
             if (p.motion && HS.DOM.motionSelect) HS.DOM.motionSelect.value = p.motion;
             if (p.revealUnit && HS.DOM.revealUnitSelect) HS.DOM.revealUnitSelect.value = p.revealUnit;
@@ -240,7 +275,18 @@
                 if (HS.DOM.outTimeInput) HS.DOM.outTimeInput.disabled = !p.outro;
                 if (HS.DOM.outTimeCol) HS.DOM.outTimeCol.classList.toggle("disabled", !p.outro);
             }
-            if (HS.DOM.outTimeInput && typeof p.outTime === "number") HS.DOM.outTimeInput.value = p.outTime;
+            if (HS.DOM.outTimeInput && typeof p.outTime === "number") HS.DOM.outTimeInput.value = HS.TimeEngine ? HS.TimeEngine.fromSeconds(p.outTime) : p.outTime;
+            if (p.textOutroOrder) HS.State.textOutroOrder = p.textOutroOrder;
+            if (p.boxOutroOrder) HS.State.boxOutroOrder = p.boxOutroOrder;
+            if (typeof p.syncOutro === "boolean") HS.State.syncOutro = p.syncOutro;
+            if (p.outroOrder && !p.textOutroOrder) HS.State.textOutroOrder = p.outroOrder;
+            if (HS.Controls && HS.Controls.syncOutroDirectionUI) HS.Controls.syncOutroDirectionUI();
+
+            if (HS.Controls && HS.Controls.updateTimeInputTooltip) {
+                if (HS.DOM.lineDurInput) HS.Controls.updateTimeInputTooltip(HS.DOM.lineDurInput);
+                if (HS.DOM.staggerInput) HS.Controls.updateTimeInputTooltip(HS.DOM.staggerInput);
+                if (HS.DOM.outTimeInput) HS.Controls.updateTimeInputTooltip(HS.DOM.outTimeInput);
+            }
 
             if (HS.Controls && HS.Controls.syncChipClasses) HS.Controls.syncChipClasses();
             if (HS.Controls && HS.Controls.syncShapeButtons) HS.Controls.syncShapeButtons();
@@ -267,11 +313,11 @@
             var py = HS.DOM.padYInput ? (parseFloat(HS.DOM.padYInput.value) || 10) : 10;
             var rnd = HS.DOM.roundInput ? (parseFloat(HS.DOM.roundInput.value) || 0) : 0;
             var opac = HS.DOM.opacityInput ? (parseFloat(HS.DOM.opacityInput.value) || 100) : 100;
-            var dur = HS.DOM.lineDurInput ? (parseFloat(HS.DOM.lineDurInput.value) || 0.35) : 0.35;
-            var stag = HS.DOM.staggerInput ? (parseFloat(HS.DOM.staggerInput.value) || 0) : 0;
+            var dur = HS.DOM.lineDurInput ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.lineDurInput.value) : (parseFloat(HS.DOM.lineDurInput.value) || 0.35)) : 0.35;
+            var stag = HS.DOM.staggerInput ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.staggerInput.value) : (parseFloat(HS.DOM.staggerInput.value) || 0)) : 0;
             var seq = HS.DOM.sequentialCheck ? HS.DOM.sequentialCheck.checked : true;
             var out = HS.DOM.outroCheck ? HS.DOM.outroCheck.checked : false;
-            var outT = HS.DOM.outTimeInput ? (parseFloat(HS.DOM.outTimeInput.value) || 1.5) : 1.5;
+            var outT = HS.DOM.outTimeInput ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.outTimeInput.value) : (parseFloat(HS.DOM.outTimeInput.value) || 1.5)) : 1.5;
 
             return {
                 color: col,
@@ -286,7 +332,10 @@
                 stagger: stag,
                 sequential: seq,
                 outro: out,
-                outTime: outT
+                outTime: outT,
+                textOutroOrder: HS.State.textOutroOrder || "first",
+                boxOutroOrder: HS.State.boxOutroOrder || "first",
+                syncOutro: (HS.State.syncOutro !== false)
             };
         },
 
@@ -342,6 +391,35 @@
             }
         },
 
+        pendingDeleteId: null,
+
+        openDeleteModal: function (id) {
+            if (!id || !HS.Presets.custom || !HS.Presets.custom[id]) return;
+            HS.Presets.pendingDeleteId = id;
+            var pName = HS.Presets.custom[id].name;
+            if (HS.DOM && HS.DOM.deletePresetMsg) {
+                HS.DOM.deletePresetMsg.textContent = 'Are you sure you want to delete preset "' + pName + '"?';
+            }
+            if (HS.DOM && HS.DOM.deletePresetModal) {
+                HS.DOM.deletePresetModal.style.display = "flex";
+            }
+        },
+
+        closeDeleteModal: function () {
+            HS.Presets.pendingDeleteId = null;
+            if (HS.DOM && HS.DOM.deletePresetModal) {
+                HS.DOM.deletePresetModal.style.display = "none";
+            }
+        },
+
+        confirmDeletePreset: function () {
+            var id = HS.Presets.pendingDeleteId;
+            if (id) {
+                HS.Presets.remove(id);
+            }
+            HS.Presets.closeDeleteModal();
+        },
+
         initEvents: function () {
             // Custom Dropdown Trigger
             var trigger = document.getElementById("preset-dropdown-trigger");
@@ -364,6 +442,7 @@
             document.addEventListener("keydown", function (e) {
                 if (e.key === "Escape") {
                     HS.Presets.closeCustomDropdown();
+                    HS.Presets.closeDeleteModal();
                 }
             });
 
@@ -376,18 +455,26 @@
                 });
             }
 
-            // Presets Delete
+            // Presets Delete Button (Triggers Custom In-Panel Modal)
             if (HS.DOM && HS.DOM.btnDeletePreset) {
                 HS.DOM.btnDeletePreset.addEventListener("click", function () {
                     HS.markInteraction();
                     var activeId = HS.Presets.activePresetId;
                     if (activeId && HS.Presets.custom && HS.Presets.custom[activeId]) {
-                        var pName = HS.Presets.custom[activeId].name;
-                        if (confirm("Delete preset \"" + pName + "\"?")) {
-                            HS.Presets.remove(activeId);
-                        }
+                        HS.Presets.openDeleteModal(activeId);
                     }
                 });
+            }
+
+            // Delete Modal Buttons
+            if (HS.DOM && HS.DOM.btnCancelDeletePreset) {
+                HS.DOM.btnCancelDeletePreset.addEventListener("click", HS.Presets.closeDeleteModal);
+            }
+            if (HS.DOM && HS.DOM.btnCloseDeletePresetModal) {
+                HS.DOM.btnCloseDeletePresetModal.addEventListener("click", HS.Presets.closeDeleteModal);
+            }
+            if (HS.DOM && HS.DOM.btnConfirmDeletePreset) {
+                HS.DOM.btnConfirmDeletePreset.addEventListener("click", HS.Presets.confirmDeletePreset);
             }
 
             // Save Preset Modal Triggers & Actions

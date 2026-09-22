@@ -704,6 +704,38 @@ body.is-scrubbing {
     font-weight: 500;
 }
 
+.target-fps-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 6px;
+    background: #1e1e27;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0 !important;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #d4d4e2;
+    flex-shrink: 0;
+    margin-left: auto;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    cursor: default;
+    user-select: none;
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.target-fps-badge:hover {
+    background: #2b2b38;
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #e8e8f2;
+}
+
+.target-fps-badge.no-comp {
+    opacity: 0.45;
+    border-style: dashed;
+}
+
 .mini-tag-btn {
     display: inline-flex;
     align-items: center;
@@ -1030,6 +1062,42 @@ label {
     flex-shrink: 0;
 }
 
+.unit-tag.unit-toggle-btn {
+    pointer-events: auto;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    color: var(--text-secondary);
+    padding: 1px 3px;
+    margin-left: 1px;
+    transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+    border-radius: 0 !important;
+}
+
+.unit-tag.unit-toggle-btn:hover {
+    color: #e8e8f2;
+    background: #252532;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.input-val-wrap input.time-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: right;
+    font-size: 11.5px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 700;
+    color: var(--text-bright);
+    outline: none;
+    padding: 0 2px 0 0;
+}
+
 /* Stepper Arrows (Spacious Click Area) */
 .stepper-actions {
     display: flex;
@@ -1080,9 +1148,165 @@ label {
     padding-left: 6px;
 }
 
-.timing-box.disabled, .order-toggle-btn.disabled, #anim-controls.disabled {
+.timing-matrix-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.timing-matrix-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.timing-matrix-box {
+    height: 28px;
+    padding-left: 6px;
+    border-radius: 0 !important;
+}
+
+.timing-matrix-box .scrub-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+}
+
+.timing-matrix-box .input-val-wrap input.timecode-input {
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: right;
+    padding-right: 3px;
+}
+
+.timing-matrix-box .tc-tag {
+    font-size: 8px;
+    font-weight: 800;
+    color: var(--accent-amber);
+    background: rgba(255, 179, 0, 0.12);
+    padding: 1px 3px;
+    border-radius: 0;
+    margin-right: 2px;
+    letter-spacing: 0.3px;
+    user-select: none;
+}
+
+.timing-box.disabled, .timing-matrix-box.disabled, .order-toggle-btn.disabled, #anim-controls.disabled, .outro-direction-bar.disabled {
     opacity: 0.35;
     pointer-events: none;
+}
+
+/* Outro Direction Bar (Dual Exit with Master Sync Link) */
+.outro-direction-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--border-subtle);
+    padding: 3px 6px;
+    margin-top: 2px;
+    border-radius: 0;
+    transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.outro-dir-label-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    user-select: none;
+}
+
+.outro-dir-title {
+    font-size: 9.5px;
+    font-weight: 700;
+}
+
+.outro-dir-cluster {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.outro-dir-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 22px;
+    min-width: 52px;
+    padding: 0 5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.outro-dir-btn:hover:not(.disabled):not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.outro-dir-btn.disabled,
+.outro-dir-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    pointer-events: none;
+    border-style: dashed;
+}
+
+.dir-tag {
+    font-size: 7.5px;
+    font-weight: 800;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 1px 3px;
+    border-radius: 2px;
+    letter-spacing: 0.3px;
+}
+
+.dir-val {
+    font-size: 8.5px;
+    font-weight: 800;
+    color: var(--text-bright);
+    letter-spacing: 0.2px;
+}
+
+.outro-sync-btn {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.outro-sync-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--text-bright);
+}
+
+.outro-sync-btn.active {
+    background: rgba(60, 75, 185, 0.28);
+    border-color: var(--primary);
+    color: #8CA4FF;
+    box-shadow: 0 0 6px rgba(60, 75, 185, 0.35);
 }
 
 /* Feature Option Chips (Solid Filled Buttons with Vibrant Active Colors) */
@@ -1289,9 +1513,37 @@ label {
 
 .action-buttons-row {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    width: 100%;
+}
+
+.action-main-btns {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Outro Direction & Sync Cluster */
+#outro-direction-bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    transition: opacity var(--transition-fast);
+}
+
+#outro-direction-bar.disabled {
+    opacity: 0.30;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
+#btn-box-outro-order.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+    background: #14141c;
+    border-color: rgba(255, 255, 255, 0.04);
 }
 
 .action-buttons-row .square-icon-btn {

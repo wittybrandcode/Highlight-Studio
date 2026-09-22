@@ -16,30 +16,38 @@ $._smartHighlighter.detectTextAnimator = function (textLayer) {
         var animators = textProp.property("ADBE Text Animators");
         if (!animators || animators.numProperties === 0) return null;
 
+        var animName = $._smartHighlighter.TYPEWRITER_ANIM_NAME || "Typewriter Sync";
         var minStart = null;
         var maxEnd = null;
         var foundProp = null;
 
         for (var i = 1; i <= animators.numProperties; i++) {
             var anim = animators.property(i);
+            var aName = anim.name || "";
+            // تجاهل أنيميتور الآلة الكاتبة التابع للإضافة لمنع تراكم المدة بشكل أسي
+            if (aName === animName || aName === "Typewriter Sync" || aName === "Typewriter") {
+                continue;
+            }
+
             var selectors = anim.property("ADBE Text Selectors");
             if (!selectors || selectors.numProperties === 0) continue;
 
-            for (var s = 1; s <= selectors.numProperties; s++) {
-                var sel = selectors.property(s);
-                var checkProps = ["ADBE Text Percent Start", "ADBE Text Percent End", "ADBE Text Percent Offset", "Start", "End", "Offset"];
-                for (var p = 0; p < checkProps.length; p++) {
-                    try {
-                        var targetProp = sel.property(checkProps[p]);
-                        if (targetProp && targetProp.numKeys >= 2) {
-                            var k1 = targetProp.keyTime(1);
-                            var k2 = targetProp.keyTime(targetProp.numKeys);
-                            if (minStart === null || k1 < minStart) minStart = k1;
-                            if (maxEnd === null || k2 > maxEnd) maxEnd = k2;
-                            foundProp = targetProp;
-                        }
-                    } catch (eProp) {}
-                }
+            // نفحص فقط المحدد الأول (Intro selector) لتجنب قراءة مفاتيح الخروج كمدة حركة الدخول
+            var sel = selectors.property(1);
+            if (!sel) continue;
+
+            var checkProps = ["ADBE Text Percent Start", "ADBE Text Percent End", "Start", "End"];
+            for (var p = 0; p < checkProps.length; p++) {
+                try {
+                    var targetProp = sel.property(checkProps[p]);
+                    if (targetProp && targetProp.numKeys >= 2) {
+                        var k1 = targetProp.keyTime(1);
+                        var k2 = targetProp.keyTime(targetProp.numKeys);
+                        if (minStart === null || k1 < minStart) minStart = k1;
+                        if (maxEnd === null || k2 > maxEnd) maxEnd = k2;
+                        foundProp = targetProp;
+                    }
+                } catch (eProp) {}
             }
         }
 
@@ -57,8 +65,8 @@ $._smartHighlighter.detectTextAnimator = function (textLayer) {
     return null;
 };
 
-// إنشاء أو تحديث تأثير Typewriter أصلي على طبقة النص لضمان تطابق النص والهايلايت
-$._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, styleType, revealUnit) {
+// إنشاء أو تحديث تأثير Typewriter أصلي على طبقة النص مع دعم كامل لحركتي الدخول والخروج (Intro & Outro)
+$._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, styleType, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers) {
     try {
         var textProp = textLayer.property("ADBE Text Properties");
         if (!textProp) return false;
@@ -75,90 +83,169 @@ $._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, st
             unitVal = 4;
         }
 
-        // دالة موحدة لضبط إعدادات Range Selector المتقدمة بدقة وتوافق تام
-        var configureRangeAdvanced = function (advGroup) {
-            if (!advGroup) return;
+        // 1. تنظيف أي أنيميتور سابق لضمان بناء جديد ونظيف وخالٍ من الأخطاء التراكمية
+        $._smartHighlighter.removeTextTypewriter(textLayer);
 
-            // 1. التأكد من بقاء Units على نسبة مئوية (1 = Percentage, 2 = Index)
-            try {
-                var uProp = advGroup.property("ADBE Text Range Units") || advGroup.property("Units");
-                if (!uProp && advGroup.numProperties >= 1) uProp = advGroup.property(1);
-                if (uProp) uProp.setValue(1);
-            } catch(eU) {}
-
-            // 2. ضبط خاصية Based On الحقيقية (ADBE Text Range Type2: 1=Chars, 3=Words, 4=Lines)
-            try {
-                var bProp = null;
-                try { bProp = advGroup.property("ADBE Text Range Type2"); } catch(eB1) {}
-                if (!bProp) { try { bProp = advGroup.property("Based On"); } catch(eB2) {} }
-                if (!bProp) { try { bProp = advGroup.property("ADBE Text Range Type"); } catch(eB3) {} }
-                if (!bProp && advGroup.numProperties >= 2) {
-                    try { bProp = advGroup.property(2); } catch(eB4) {}
-                }
-                if (bProp) {
-                    bProp.setValue(unitVal);
-                    $._smartHighlighter.log("ensureTextTypewriter: Based On set to " + unitVal + " (" + (revealUnit || "chars") + ")");
-                }
-            } catch(eB) {
-                $._smartHighlighter.log("ensureTextTypewriter Based On error: " + eB.toString());
-            }
-
-            // 3. ضبط النعومة على صفر (Smoothness = 0) لقفزات حاسمة ومطابقة
-            try {
-                var smProp = null;
-                try { smProp = advGroup.property("ADBE Text Range Smoothness"); } catch(eS1) {}
-                if (!smProp) { try { smProp = advGroup.property("ADBE Text Selector Smoothness"); } catch(eS2) {} }
-                if (!smProp) { try { smProp = advGroup.property("Smoothness"); } catch(eS3) {} }
-                if (!smProp && advGroup.numProperties >= 5) {
-                    try { smProp = advGroup.property(5); } catch(eS4) {}
-                }
-                if (smProp) smProp.setValue(0);
-            } catch(eSm) {}
-        };
-
-        // التحقق مما إذا كان هناك Animator سابق باسم Typewriter Sync لتحديث مفاتيحه بدقة
-        for (var i = 1; i <= animators.numProperties; i++) {
-            var aName = animators.property(i).name;
-            if (aName === animName || aName === "Typewriter" || aName === "Typewriter Sync") {
-                try {
-                    var exAnim = animators.property(i);
-                    var exSelectors = exAnim.property("ADBE Text Selectors");
-                    if (exSelectors && exSelectors.numProperties >= 1) {
-                        var exSel = exSelectors.property(1);
-                        var exStart = null;
-                        try { exStart = exSel.property("ADBE Text Percent Start"); } catch(e0) {}
-                        if (!exStart) { try { exStart = exSel.property("Start"); } catch(e01) {} }
-                        if (exStart) {
-                            while (exStart.numKeys > 0) {
-                                exStart.removeKey(1);
-                            }
-                            exStart.setValueAtTime(tStart, 0);
-                            exStart.setValueAtTime(tEnd, 100);
-                            try {
-                                exStart.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
-                                exStart.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
-                            } catch(eK) {}
-                        }
-                        var exAdv = null;
-                        try { exAdv = exSel.property("ADBE Text Range Advanced"); } catch(eA1) {}
-                        if (!exAdv) { try { exAdv = exSel.property("Advanced"); } catch(eA2) {} }
-                        if (exAdv) {
-                            configureRangeAdvanced(exAdv);
-                        }
-                        return true;
-                    }
-                } catch(eUp) {}
-            }
-        }
-
+        // 2. إنشاء أنيميتور جديد باسم Typewriter Sync
         var anim = animators.addProperty("ADBE Text Animator");
         anim.name = animName;
 
-        var props = anim.property("ADBE Text Animator Properties");
-        var op = props.addProperty("ADBE Text Opacity");
-        op.setValue(0);
+        // 3. إضافة المحدّد الأول: حركة الدخول (Range Selector Intro)
+        var selectors = anim.property("ADBE Text Selectors");
+        var inSel = selectors.addProperty("ADBE Text Selector");
+        try { inSel.name = "Range Selector Intro"; } catch(eNameIn) {}
 
-        // إذا كان النمط المطلوب هو الـ Scale Pop، نضيف خاصية Scale للأنيميتور
+        // ضبط إعدادات المحدّد المتقدمة (Advanced): Based On و Smoothness = 0
+        try {
+            var inAdv = inSel.property("ADBE Text Range Advanced");
+            if (inAdv) {
+                // Based On: 1=Chars, 3=Words, 4=Lines
+                try {
+                    var bProp = inAdv.property("ADBE Text Range Type2");
+                    if (bProp) bProp.setValue(unitVal);
+                } catch(eB) {}
+                // Smoothness: 0 لقفزات نصية حاسمة
+                try {
+                    var smProp = inAdv.property("ADBE Text Selector Smoothness");
+                    if (smProp) smProp.setValue(0);
+                } catch(eSm) {}
+            }
+        } catch(eAdvIn) {}
+
+        // ضبط مفاتيح الدخول على المحدّد الأول (Intro)
+        try {
+            var inEndProp = inSel.property("ADBE Text Percent End");
+            if (inEndProp) inEndProp.setValue(100);
+        } catch(eE1) {}
+
+        var inStartProp = null;
+        try { inStartProp = inSel.property("ADBE Text Percent Start"); } catch(eS1) {}
+        if (inStartProp) {
+            inStartProp.setValueAtTime(tStart, 0);
+            inStartProp.setValueAtTime(tEnd, 100);
+            try {
+                inStartProp.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                inStartProp.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+            } catch(eLin1) {}
+
+            if (useMarkers === true) {
+                var inExpr = 
+                    "var res = value;\n" +
+                    "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                    "    var inS = null, inE = null;\n" +
+                    "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
+                    "        var c = thisLayer.marker.key(i).comment;\n" +
+                    "        if (c === 'HL_IN_START') inS = thisLayer.marker.key(i).time;\n" +
+                    "        else if (c === 'HL_IN_END') inE = thisLayer.marker.key(i).time;\n" +
+                    "    }\n" +
+                    "    if (inS !== null && inE !== null) res = linear(time, inS, inE, 0, 100);\n" +
+                    "}\n" +
+                    "res;";
+                try { inStartProp.expression = inExpr; } catch(eEx1) {}
+            }
+        }
+
+        // 4. إذا كانت حركة الخروج مفعلة، ننشئ المحدد الثاني (Range Selector Outro)
+        if (hasOutro === true) {
+            if (typeof tOutStart !== "number") tOutStart = tEnd + 1.0;
+            if (typeof tOutEnd !== "number" || tOutEnd <= tOutStart) tOutEnd = tOutStart + Math.max(0.2, tEnd - tStart);
+
+            var outSel = selectors.addProperty("ADBE Text Selector");
+            try { outSel.name = "Range Selector Outro"; } catch(eNameOut) {}
+
+            try {
+                var outAdv = outSel.property("ADBE Text Range Advanced");
+                if (outAdv) {
+                    try {
+                        var obProp = outAdv.property("ADBE Text Range Type2");
+                        if (obProp) obProp.setValue(unitVal);
+                    } catch(eOb) {}
+                    try {
+                        var osmProp = outAdv.property("ADBE Text Selector Smoothness");
+                        if (osmProp) osmProp.setValue(0);
+                    } catch(eOsm) {}
+                }
+            } catch(eAdvOut) {}
+
+            var isReverse = (outroOrder === "last");
+            if (isReverse) {
+                // خروج عكسي N➔1: الحروف الأخيرة تختفي أولاً
+                try {
+                    var oEndP = outSel.property("ADBE Text Percent End");
+                    if (oEndP) oEndP.setValue(100);
+                } catch(eOE) {}
+
+                var oStartP = null;
+                try { oStartP = outSel.property("ADBE Text Percent Start"); } catch(eOS) {}
+                if (oStartP) {
+                    oStartP.setValueAtTime(tOutStart, 100);
+                    oStartP.setValueAtTime(tOutEnd, 0);
+                    try {
+                        oStartP.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                        oStartP.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                    } catch(eLin2) {}
+
+                    if (useMarkers === true) {
+                        var outRevExpr = 
+                            "var res = value;\n" +
+                            "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                            "    var outS = null, outE = null;\n" +
+                            "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
+                            "        var c = thisLayer.marker.key(i).comment;\n" +
+                            "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(i).time;\n" +
+                            "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(i).time;\n" +
+                            "    }\n" +
+                            "    if (outS !== null && outE !== null) res = linear(time, outS, outE, 100, 0);\n" +
+                            "}\n" +
+                            "res;";
+                        try { oStartP.expression = outRevExpr; } catch(eExRev) {}
+                    }
+                }
+            } else {
+                // خروج طبيعي 1➔N: الحروف الأولى تختفي أولاً
+                try {
+                    var oStartP2 = outSel.property("ADBE Text Percent Start");
+                    if (oStartP2) oStartP2.setValue(0);
+                } catch(eOS2) {}
+
+                var oEndP2 = null;
+                try { oEndP2 = outSel.property("ADBE Text Percent End"); } catch(eOE2) {}
+                if (oEndP2) {
+                    oEndP2.setValueAtTime(tOutStart, 0);
+                    oEndP2.setValueAtTime(tOutEnd, 100);
+                    try {
+                        oEndP2.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                        oEndP2.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                    } catch(eLin3) {}
+
+                    if (useMarkers === true) {
+                        var outFwdExpr = 
+                            "var res = value;\n" +
+                            "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                            "    var outS = null, outE = null;\n" +
+                            "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
+                            "        var c = thisLayer.marker.key(i).comment;\n" +
+                            "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(i).time;\n" +
+                            "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(i).time;\n" +
+                            "    }\n" +
+                            "    if (outS !== null && outE !== null) res = linear(time, outS, outE, 0, 100);\n" +
+                            "}\n" +
+                            "res;";
+                        try { oEndP2.expression = outFwdExpr; } catch(eExFwd) {}
+                    }
+                }
+            }
+        }
+
+        // 5. إضافة الخصائص البصرية (ADBE Text Opacity = 0)
+        var props = anim.property("ADBE Text Animator Properties");
+        var op = null;
+        try { op = props.addProperty("ADBE Text Opacity"); } catch(eAddOp) {}
+        if (!op) {
+            try { op = props.property("ADBE Text Opacity"); } catch(eGetOp) {}
+        }
+        if (op) op.setValue(0);
+
         if (styleType === "scale" || styleType === "pop") {
             try {
                 var sc = props.addProperty("ADBE Text Scale 3D");
@@ -167,36 +254,8 @@ $._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, st
             } catch (eSc) {}
         }
 
-        var selectors = anim.property("ADBE Text Selectors");
-        var sel = selectors.addProperty("ADBE Text Selector");
-        sel.name = "Range Selector";
-
-        // ضبط خصائص Range Selector المتقدمة (Units, Based On, Smoothness)
-        var adv = null;
-        try { adv = sel.property("ADBE Text Range Advanced"); } catch(eA3) {}
-        if (!adv) { try { adv = sel.property("Advanced"); } catch(eA4) {} }
-        if (adv) {
-            configureRangeAdvanced(adv);
-        }
-
-        var startP = null;
-        try { startP = sel.property("ADBE Text Percent Start"); } catch(e1) {}
-        if (!startP) {
-            try { startP = sel.property("Start"); } catch(e2) {}
-        }
-        if (!startP && sel.numProperties >= 1) {
-            startP = sel.property(1);
-        }
-
-        if (startP) {
-            startP.setValueAtTime(tStart, 0);
-            startP.setValueAtTime(tEnd, 100);
-            try {
-                startP.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
-                startP.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
-            } catch(eKey) {}
-            return true;
-        }
+        $._smartHighlighter.log("ensureTextTypewriter: successfully built Typewriter Sync with selectors and opacity.");
+        return true;
     } catch (e) {
         $._smartHighlighter.log("ensureTextTypewriter error: " + e.toString());
     }
@@ -213,7 +272,8 @@ $._smartHighlighter.removeTextTypewriter = function (textLayer) {
 
         var animName = $._smartHighlighter.TYPEWRITER_ANIM_NAME || "Typewriter Sync";
         for (var ai = animators.numProperties; ai >= 1; ai--) {
-            if (animators.property(ai).name === animName) {
+            var an = animators.property(ai).name;
+            if (an === animName || an === "Typewriter Sync" || an === "Typewriter") {
                 animators.property(ai).remove();
             }
         }

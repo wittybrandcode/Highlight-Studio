@@ -9,7 +9,36 @@
     window.HS = HS;
 
     HS.Controls = {
+        setLiveUpdate: function (enabled) {
+            HS.markInteraction();
+            HS.State.liveUpdate = !!enabled;
+            try {
+                var storage = (typeof localStorage !== "undefined") ? localStorage : (window && window.localStorage ? window.localStorage : null);
+                if (storage) storage.setItem("hs_live_update", HS.State.liveUpdate ? "true" : "false");
+            } catch (e) {}
+            HS.Controls.syncLiveUpdateUI();
+            var msg = HS.State.liveUpdate
+                ? "Live Auto-Update: ENABLED (التحديث التلقائي المباشر مفعّل)"
+                : "Live Auto-Update: PAUSED (التحديث المباشر معطّل - استخدم زر البرق للتطبيق)";
+            HS.setStatus(msg);
+        },
+
+        toggleLiveUpdate: function () {
+            HS.Controls.setLiveUpdate(!HS.State.liveUpdate);
+        },
+
+        syncLiveUpdateUI: function () {
+            if (!HS.DOM || !HS.DOM.btnLiveUpdate) return;
+            var isActive = (HS.State.liveUpdate !== false);
+            HS.DOM.btnLiveUpdate.classList.toggle("active", isActive);
+            HS.DOM.btnLiveUpdate.setAttribute("data-active", isActive ? "true" : "false");
+            HS.DOM.btnLiveUpdate.title = isActive
+                ? "Live Auto-Update: ON (تحديث مباشر تلقائي نشط - انقر للتعطيل والاعتماد على زر البرق)"
+                : "Live Auto-Update: OFF (تحديث مباشر معطّل - انقر للتفعيل التلقائي)";
+        },
+
         applyLiveColor: function (hex) {
+            if (HS.State.liveUpdate === false) return;
             HS.Bridge.eval("$._smartHighlighter.setQuickColor('" + hex + "', 'all')", function (res) {
                 if (res && res.indexOf("SUCCESS") !== -1) {
                     HS.setStatus(res.replace("SUCCESS:", "").trim());
@@ -19,8 +48,22 @@
             });
         },
 
+        liveParamTimers: {},
+        applyLiveParamThrottled: function (paramName, val) {
+            HS.markInteraction();
+            if (HS.State.liveUpdate === false) return;
+            if (HS.Controls.liveParamTimers[paramName]) {
+                cancelAnimationFrame(HS.Controls.liveParamTimers[paramName]);
+            }
+            HS.Controls.liveParamTimers[paramName] = requestAnimationFrame(function () {
+                HS.Controls.applyLiveParam(paramName, val);
+                delete HS.Controls.liveParamTimers[paramName];
+            });
+        },
+
         applyLiveParam: function (paramName, val) {
             HS.markInteraction();
+            if (HS.State.liveUpdate === false) return;
             HS.Bridge.eval("$._smartHighlighter.setQuickParam('" + paramName + "', " + val + ", 'all')", function (res) {
                 if (res && res.indexOf("SUCCESS") !== -1) {
                     HS.setStatus(res.replace("SUCCESS:", "").trim());
@@ -28,10 +71,110 @@
             });
         },
 
+        isTimeInput: function (input) {
+            if (!input || !input.id) return false;
+            return (input.id === "time-in-point" || input.id === "time-out-point" || input.id === "line-dur" || input.id === "out-time" || input.id === "stagger" || input.id === "phrase-hold-time");
+        },
+
+        updateTimeInputTooltip: function (input) {
+            if (!HS.Controls.isTimeInput(input)) return;
+            var allowZero = (input.id === "stagger" || input.id === "time-in-point");
+            var tip = HS.TimeEngine ? HS.TimeEngine.getTooltipText(input.value, allowZero) : input.value;
+            input.title = tip;
+            var box = input.closest(".precision-input-box");
+            if (box) {
+                var lbl = box.querySelector(".scrub-label");
+                if (lbl) lbl.title = tip;
+            }
+        },
+
+        updateTimeInputsForFps: function (fps) {
+            if (HS.TimeEngine && typeof HS.TimeEngine.setFPS === "function") {
+                HS.TimeEngine.setFPS(fps);
+            }
+            var timeIds = ["time-in-point", "time-out-point", "line-dur", "out-time", "stagger", "phrase-hold-time"];
+            timeIds.forEach(function (id) {
+                var inp = document.getElementById(id);
+                if (!inp) return;
+                // Never overwrite while the user is actively focused/typing in this input!
+                if (document.activeElement === inp) return;
+                var allowZero = (id === "stagger" || id === "time-in-point");
+                if (HS.TimeEngine) {
+                    inp.value = HS.TimeEngine.normalize(inp.value, undefined, allowZero);
+                }
+                HS.Controls.updateTimeInputTooltip(inp);
+            });
+
+            // Update all unit toggle button labels
+            var fmt = (HS.TimeEngine ? HS.TimeEngine.getFormat() : "sf");
+            var fmtLabel = (fmt === "sf") ? "s:f" : ((fmt === "f") ? "f" : "s");
+            document.querySelectorAll(".unit-toggle-btn").forEach(function (btn) {
+                btn.textContent = fmtLabel;
+            });
+        },
+
+        cycleTimeFormat: function () {
+            if (!HS.TimeEngine) return;
+            var newFmt = HS.TimeEngine.cycleFormat();
+            HS.Controls.updateTimeInputsForFps(HS.TimeEngine.getFPS());
+            var fmtDesc = (newFmt === "sf") ? "Seconds:Frames (s:f)" : ((newFmt === "f") ? "Pure Frames (f)" : "Decimal Seconds (s)");
+            HS.setStatus("Time Format: " + fmtDesc);
+        },
+
+        placeTimingMarkers: function () {
+            HS.markInteraction();
+            var inPoint = (HS.DOM && HS.DOM.timeInPoint) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.timeInPoint.value) : 0) : 0;
+            var outPoint = (HS.DOM && HS.DOM.timeOutPoint) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.timeOutPoint.value) : 2.5) : 2.5;
+            var inDur = (HS.DOM && HS.DOM.lineDurInput) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.lineDurInput.value) : 0.6) : 0.6;
+            var outDur = (HS.DOM && HS.DOM.outTimeInput) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.outTimeInput.value) : 0.4) : 0.4;
+            var hasOutro = (HS.DOM && HS.DOM.outroCheck) ? !!HS.DOM.outroCheck.checked : true;
+
+            HS.setStatus("Placing timing markers on text layer...");
+            var code = "$._smartHighlighter.addTimingMarkers(" + inPoint + ", " + outPoint + ", " + inDur + ", " + outDur + ", " + hasOutro + ")";
+            HS.Bridge.eval(code, function (res) {
+                if (res && res.indexOf("SUCCESS") !== -1) {
+                    HS.setStatus(res.replace("SUCCESS:", "").trim());
+                    // Auto-enable marker sync toggle
+                    if (HS.DOM && HS.DOM.markerSyncCheck && !HS.DOM.markerSyncCheck.checked) {
+                        HS.DOM.markerSyncCheck.checked = true;
+                        HS.Controls.syncChipClasses();
+                    }
+                } else if (res && res.indexOf("ERROR") !== -1) {
+                    HS.setStatus(res.replace("ERROR:", "").trim(), true);
+                }
+            });
+        },
+
+        syncMarkersToAE: function () {
+            if (HS.State.liveUpdate === false) return;
+            if (!HS.DOM || !HS.DOM.markerSyncCheck || !HS.DOM.markerSyncCheck.checked) return;
+            var inPoint = (HS.DOM && HS.DOM.timeInPoint) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.timeInPoint.value) : 0) : 0;
+            var outPoint = (HS.DOM && HS.DOM.timeOutPoint) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.timeOutPoint.value) : 2.5) : 2.5;
+            var inDur = (HS.DOM && HS.DOM.lineDurInput) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.lineDurInput.value) : 0.6) : 0.6;
+            var outDur = (HS.DOM && HS.DOM.outTimeInput) ? (HS.TimeEngine ? HS.TimeEngine.toSeconds(HS.DOM.outTimeInput.value) : 0.4) : 0.4;
+            var hasOutro = (HS.DOM && HS.DOM.outroCheck) ? !!HS.DOM.outroCheck.checked : true;
+
+            var code = "$._smartHighlighter.addTimingMarkers(" + inPoint + ", " + outPoint + ", " + inDur + ", " + outDur + ", " + hasOutro + ")";
+            HS.Bridge.eval(code, function () {});
+        },
+
         adjustStepper: function (input, isUp, multiplier) {
             HS.markInteraction();
             if (!input || input.disabled) return;
             multiplier = multiplier || 1;
+
+            if (HS.Controls.isTimeInput(input)) {
+                var delta = (multiplier >= 10) ? (isUp ? 5 : -5) : (isUp ? 1 : -1);
+                var allowZero = (input.id === "stagger");
+                if (HS.TimeEngine) {
+                    input.value = HS.TimeEngine.addFrames(input.value, delta, undefined, allowZero);
+                }
+                HS.Controls.updateTimeInputTooltip(input);
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+                return;
+            }
+
             var step = (parseFloat(input.step) || 1) * multiplier;
             var val = parseFloat(input.value) || 0;
             val = isUp ? val + step : val - step;
@@ -47,7 +190,6 @@
                 input.value = Math.round(val);
             }
 
-            input.dispatchEvent(new Event("input", { bubbles: true }));
             input.dispatchEvent(new Event("change", { bubbles: true }));
         },
 
@@ -70,15 +212,87 @@
         },
 
         setOutroOrder: function (order) {
+            HS.Controls.setTextOutroOrder(order);
+        },
+
+        setTextOutroOrder: function (order) {
+            HS.markInteraction();
+            HS.State.textOutroOrder = order;
             HS.State.outroOrder = order;
-            if (HS.DOM && HS.DOM.btnOutroOrder) HS.DOM.btnOutroOrder.dataset.order = order;
-            if (HS.DOM && HS.DOM.orderLabel) HS.DOM.orderLabel.textContent = (order === "last") ? "N➔1" : "1➔N";
-            if (HS.DOM && HS.DOM.btnOutroOrder) {
-                HS.DOM.btnOutroOrder.title = (order === "last")
-                    ? "Exit Order: Last Line First (N➔1). Click to toggle: 1➔N"
-                    : "Exit Order: First Line First (1➔N). Click to toggle: N➔1";
+            if (HS.State.syncOutro !== false) {
+                HS.State.boxOutroOrder = order;
             }
-            HS.setStatus("Outro Order: " + (order === "last" ? "Last Line First (N➔1)" : "First Line First (1➔N)"));
+            HS.Controls.syncOutroDirectionUI();
+            var label = (order === "last") ? "Reverse (←)" : "Forward (→)";
+            HS.setStatus("Text Exit Direction: " + label);
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                HS.Actions.executeSmartAction(false);
+            }
+        },
+
+        setBoxOutroOrder: function (order) {
+            HS.markInteraction();
+            HS.State.boxOutroOrder = order;
+            HS.Controls.syncOutroDirectionUI();
+            var label = (order === "last") ? "Reverse (←)" : "Forward (→)";
+            HS.setStatus("Containers Exit Direction: " + label);
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                HS.Actions.executeSmartAction(false);
+            }
+        },
+
+        setOutroSync: function (isSynced) {
+            HS.markInteraction();
+            HS.State.syncOutro = !!isSynced;
+            if (HS.State.syncOutro) {
+                HS.State.boxOutroOrder = HS.State.textOutroOrder || "first";
+            }
+            HS.Controls.syncOutroDirectionUI();
+            var desc = HS.State.syncOutro ? "Containers Synced to Text (تزامن الحاويات مع النص)" : "Independent Exit (خروج منفصل للحاويات)";
+            HS.setStatus("Outro Sync: " + desc);
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                HS.Actions.executeSmartAction(false);
+            }
+        },
+
+        syncOutroDirectionUI: function () {
+            var tOrder = HS.State.textOutroOrder || "first";
+            var bOrder = (HS.State.syncOutro !== false) ? tOrder : (HS.State.boxOutroOrder || tOrder);
+            var isSynced = (HS.State.syncOutro !== false);
+
+            var svgTextForward = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 7h7M6 7v10"/><path d="M12 12h9.5m-4.5-5 4.5 5-4.5 5"/></svg>';
+            var svgTextReverse = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12H2.5m4.5-5-4.5 5 4.5 5"/><path d="M14.5 7h7M18 7v10"/></svg>';
+
+            var svgBoxForward = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="7" height="10" rx="1.5"/><path d="M12 12h9.5m-4.5-5 4.5 5-4.5 5"/></svg>';
+            var svgBoxReverse = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12H2.5m4.5-5-4.5 5 4.5 5"/><rect x="14.5" y="7" width="7" height="10" rx="1.5"/></svg>';
+
+            if (HS.DOM) {
+                if (HS.DOM.btnTextOutroOrder) {
+                    HS.DOM.btnTextOutroOrder.dataset.order = tOrder;
+                    HS.DOM.btnTextOutroOrder.innerHTML = (tOrder === "last") ? svgTextReverse : svgTextForward;
+                    HS.DOM.btnTextOutroOrder.title = (tOrder === "last")
+                        ? "Text Exit Direction: Reverse (← / Backspace). Click to toggle: Forward (→)"
+                        : "Text Exit Direction: Forward (→). Click to toggle: Reverse (←)";
+                }
+
+                if (HS.DOM.btnSyncOutroOrder) {
+                    HS.DOM.btnSyncOutroOrder.classList.toggle("active", isSynced);
+                    HS.DOM.btnSyncOutroOrder.dataset.synced = isSynced ? "true" : "false";
+                    HS.DOM.btnSyncOutroOrder.title = isSynced
+                        ? "Containers Synced to Text: Click to unlink for independent container direction"
+                        : "Containers Unlinked: Click to lock containers to text direction";
+                }
+
+                if (HS.DOM.btnBoxOutroOrder) {
+                    HS.DOM.btnBoxOutroOrder.dataset.order = bOrder;
+                    HS.DOM.btnBoxOutroOrder.disabled = isSynced;
+                    HS.DOM.btnBoxOutroOrder.classList.toggle("disabled", isSynced);
+                    HS.DOM.btnBoxOutroOrder.innerHTML = (bOrder === "last") ? svgBoxReverse : svgBoxForward;
+                    HS.DOM.btnBoxOutroOrder.title = isSynced
+                        ? "Box Exit Direction (Locked to Text via 🔗): " + (tOrder === "last" ? "Reverse (←)" : "Forward (→)") + " (Unlink to customize)"
+                        : "Box Exit Direction: " + (bOrder === "last" ? "Reverse (←)" : "Forward (→)") + ". Click to toggle.";
+                }
+            }
         },
 
         setShape: function (shape) {
@@ -95,7 +309,7 @@
                 outline: "Outline (إطار)"
             };
             HS.setStatus("Shape: " + (shapeLabels[shape] || shape));
-            if (HS.State.mainTab === "paragraph") {
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
                 HS.Actions.executeSmartAction(false);
             }
         },
@@ -120,7 +334,7 @@
                 center: "Center (منتصف)"
             };
             HS.setStatus("Direction: " + (dirLabels[dir] || dir));
-            if (HS.State.mainTab === "paragraph") {
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
                 HS.Actions.executeSmartAction(false);
             }
         },
@@ -139,7 +353,7 @@
                 HS.DOM.motionSelect.dispatchEvent(new Event("change", { bubbles: true }));
             }
             HS.Controls.syncMotionButtons();
-            if (HS.State.mainTab === "paragraph") {
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
                 HS.Actions.executeSmartAction(false);
             }
         },
@@ -333,6 +547,7 @@
             HS.Controls.syncDirectionButtons();
             HS.Controls.syncMotionButtons();
             HS.Controls.syncRevealButtons();
+            HS.Controls.syncOutroDirectionUI();
             HS.Controls.syncPhraseShapeButtons();
             HS.Controls.syncPhraseMotionButtons();
             if (HS.DOM.phraseColorInput) {
@@ -389,19 +604,19 @@
 
             // Live Parameter Inputs (padX, padY, roundness, opacity)
             if (HS.DOM.roundInput) {
-                HS.DOM.roundInput.addEventListener("input", function () { HS.Controls.applyLiveParam("roundness", parseFloat(this.value) || 0); });
+                HS.DOM.roundInput.addEventListener("input", function () { HS.Controls.applyLiveParamThrottled("roundness", parseFloat(this.value) || 0); });
                 HS.DOM.roundInput.addEventListener("change", function () { HS.Controls.applyLiveParam("roundness", parseFloat(this.value) || 0); });
             }
             if (HS.DOM.padXInput) {
-                HS.DOM.padXInput.addEventListener("input", function () { HS.Controls.applyLiveParam("padX", parseFloat(this.value) || 0); });
+                HS.DOM.padXInput.addEventListener("input", function () { HS.Controls.applyLiveParamThrottled("padX", parseFloat(this.value) || 0); });
                 HS.DOM.padXInput.addEventListener("change", function () { HS.Controls.applyLiveParam("padX", parseFloat(this.value) || 0); });
             }
             if (HS.DOM.padYInput) {
-                HS.DOM.padYInput.addEventListener("input", function () { HS.Controls.applyLiveParam("padY", parseFloat(this.value) || 0); });
+                HS.DOM.padYInput.addEventListener("input", function () { HS.Controls.applyLiveParamThrottled("padY", parseFloat(this.value) || 0); });
                 HS.DOM.padYInput.addEventListener("change", function () { HS.Controls.applyLiveParam("padY", parseFloat(this.value) || 0); });
             }
             if (HS.DOM.opacityInput) {
-                HS.DOM.opacityInput.addEventListener("input", function () { HS.Controls.applyLiveParam("opacity", parseFloat(this.value) || 100); });
+                HS.DOM.opacityInput.addEventListener("input", function () { HS.Controls.applyLiveParamThrottled("opacity", parseFloat(this.value) || 100); });
                 HS.DOM.opacityInput.addEventListener("change", function () { HS.Controls.applyLiveParam("opacity", parseFloat(this.value) || 100); });
             }
 
@@ -442,24 +657,58 @@
                     var uVal = this.value || "chars";
                     var uLabel = (uVal === "words") ? "Words (كلمة بكلمة)" : ((uVal === "lines") ? "Lines (سطر بسطر)" : "Characters (حرف بحرف)");
                     HS.setStatus("Reveal Unit: " + uLabel);
-                    if (HS.State.mainTab === "paragraph") {
+                    if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
                         HS.Actions.executeSmartAction(false);
                     }
                 });
             }
 
-            // Outro Toggle & Order
+            // Outro Toggle & Direction Controls
             if (HS.DOM.outroCheck) {
                 HS.DOM.outroCheck.addEventListener("change", function () {
-                    if (HS.DOM.outTimeInput) HS.DOM.outTimeInput.disabled = !this.checked;
-                    if (HS.DOM.outTimeCol) HS.DOM.outTimeCol.classList.toggle("disabled", !this.checked);
-                    if (HS.DOM.btnOutroOrder) HS.DOM.btnOutroOrder.classList.toggle("disabled", !this.checked);
+                    HS.markInteraction();
+                    var isEnabled = !!this.checked;
+                    if (HS.DOM.outTimeInput) HS.DOM.outTimeInput.disabled = !isEnabled;
+                    if (HS.DOM.outTimeCol) HS.DOM.outTimeCol.classList.toggle("disabled", !isEnabled);
+                    if (HS.DOM.timeOutPoint) HS.DOM.timeOutPoint.disabled = !isEnabled;
+                    if (HS.DOM.timeOutPointBox) HS.DOM.timeOutPointBox.classList.toggle("disabled", !isEnabled);
+                    if (HS.DOM.outroDirectionBar) HS.DOM.outroDirectionBar.classList.toggle("disabled", !isEnabled);
                     HS.Controls.syncChipClasses();
+                    HS.Controls.syncOutroDirectionUI();
+                    HS.setStatus("Outro Exit: " + (isEnabled ? "Enabled" : "Disabled"));
+
+                    // Auto sync markers if marker sync is active and liveUpdate is enabled
+                    if (HS.State.liveUpdate !== false && HS.DOM.markerSyncCheck && HS.DOM.markerSyncCheck.checked && HS.Controls.syncMarkersToAE) {
+                        HS.Controls.syncMarkersToAE();
+                    }
+
+                    if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                        HS.Actions.executeSmartAction(false);
+                    }
                 });
             }
-            if (HS.DOM.btnOutroOrder) {
-                HS.DOM.btnOutroOrder.addEventListener("click", function () {
-                    HS.Controls.setOutroOrder(HS.State.outroOrder === "first" ? "last" : "first");
+
+            // Text Outro Order Button (TXT 1➔N / N➔1)
+            if (HS.DOM.btnTextOutroOrder) {
+                HS.DOM.btnTextOutroOrder.addEventListener("click", function () {
+                    var cur = HS.State.textOutroOrder || "first";
+                    HS.Controls.setTextOutroOrder(cur === "first" ? "last" : "first");
+                });
+            }
+
+            // Sync Outro Toggle Button (🔗 Link / Unlink)
+            if (HS.DOM.btnSyncOutroOrder) {
+                HS.DOM.btnSyncOutroOrder.addEventListener("click", function () {
+                    HS.Controls.setOutroSync(!HS.State.syncOutro);
+                });
+            }
+
+            // Box Outro Order Button (BOX 1➔N / N➔1)
+            if (HS.DOM.btnBoxOutroOrder) {
+                HS.DOM.btnBoxOutroOrder.addEventListener("click", function () {
+                    if (this.disabled || this.classList.contains("disabled")) return;
+                    var cur = HS.State.boxOutroOrder || "first";
+                    HS.Controls.setBoxOutroOrder(cur === "first" ? "last" : "first");
                 });
             }
 
@@ -491,19 +740,21 @@
                     var box = upBtn.closest(".precision-input-box");
                     if (box) {
                         var mult = e.shiftKey ? 10 : (e.altKey ? 0.1 : 1);
-                        HS.Controls.adjustStepper(box.querySelector("input[type='number']"), true, mult);
+                        var targetInp = box.querySelector("input");
+                        HS.Controls.adjustStepper(targetInp, true, mult);
                     }
                 } else if (downBtn) {
                     var box = downBtn.closest(".precision-input-box");
                     if (box) {
                         var mult = e.shiftKey ? 10 : (e.altKey ? 0.1 : 1);
-                        HS.Controls.adjustStepper(box.querySelector("input[type='number']"), false, mult);
+                        var targetInp = box.querySelector("input");
+                        HS.Controls.adjustStepper(targetInp, false, mult);
                     }
                 }
             });
 
             // Mouse Wheel Scrubbing with Shift / Alt modifiers
-            document.querySelectorAll(".precision-input-box input[type='number']").forEach(function (inp) {
+            document.querySelectorAll(".precision-input-box input").forEach(function (inp) {
                 inp.addEventListener("wheel", function (e) {
                     e.preventDefault();
                     var mult = e.shiftKey ? 10 : (e.altKey ? 0.1 : 1);
@@ -521,7 +772,10 @@
 
                     e.preventDefault();
                     var startX = e.clientX;
-                    var startVal = parseFloat(input.value) || 0;
+                    var isTime = HS.Controls.isTimeInput(input);
+                    var allowZero = (input.id === "stagger");
+                    var startVal = isTime ? input.value : (parseFloat(input.value) || 0);
+                    var startFrames = (isTime && HS.TimeEngine) ? HS.TimeEngine.getFrameCount(startVal, allowZero) : 0;
                     var step = parseFloat(input.step) || 1;
                     var min = input.min !== "" ? parseFloat(input.min) : -Infinity;
                     var max = input.max !== "" ? parseFloat(input.max) : Infinity;
@@ -532,6 +786,20 @@
                         HS.markInteraction();
                         var deltaX = ev.clientX - startX;
                         var mult = ev.shiftKey ? 10 : (ev.altKey ? 0.1 : 1);
+
+                        if (isTime) {
+                            var frameStep = (mult >= 10) ? 5 : 1;
+                            var frameDelta = Math.round((deltaX / 5) * frameStep);
+                            var minF = allowZero ? 0 : 1;
+                            var newFrames = Math.max(minF, startFrames + frameDelta);
+                            if (HS.TimeEngine) {
+                                input.value = HS.TimeEngine.fromSeconds(newFrames / HS.TimeEngine.getFPS());
+                            }
+                            HS.Controls.updateTimeInputTooltip(input);
+                            input.dispatchEvent(new Event("input", { bubbles: true }));
+                            return;
+                        }
+
                         var change = (deltaX / 4) * step * mult;
                         var newVal = Math.max(min, Math.min(max, startVal + change));
 
@@ -555,6 +823,67 @@
                     window.addEventListener("mouseup", onMouseUp);
                 });
             });
+
+            // Live validation and frame-snapping on direct input change for time fields
+            ["time-in-point", "time-out-point", "line-dur", "out-time", "stagger", "phrase-hold-time"].forEach(function (id) {
+                var timeInp = document.getElementById(id);
+                if (!timeInp) return;
+
+                timeInp.addEventListener("input", function () {
+                    HS.markInteraction();
+                    HS.Controls.updateTimeInputTooltip(this);
+                });
+
+                timeInp.addEventListener("change", function () {
+                    HS.markInteraction();
+                    var allowZero = (this.id === "stagger" || this.id === "time-in-point");
+                    if (HS.TimeEngine) {
+                        this.value = HS.TimeEngine.normalize(this.value, undefined, allowZero);
+                    }
+                    HS.Controls.updateTimeInputTooltip(this);
+                    if (this.id === "time-in-point" || this.id === "time-out-point" || this.id === "line-dur" || this.id === "out-time") {
+                        HS.Controls.syncMarkersToAE();
+                    }
+                });
+            });
+
+            // Click listener on unit toggle buttons to cycle formats (s:f ➔ f ➔ s)
+            document.querySelectorAll(".unit-toggle-btn").forEach(function (btn) {
+                btn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    HS.Controls.cycleTimeFormat();
+                });
+            });
+
+            // Place / Refresh Markers button
+            var btnPlace = document.getElementById("btn-place-markers");
+            if (btnPlace) {
+                btnPlace.addEventListener("click", function () {
+                    HS.Controls.placeTimingMarkers();
+                });
+            }
+
+            // Restore saved Live Update preference if exists
+            try {
+                var storage = (typeof localStorage !== "undefined") ? localStorage : (window && window.localStorage ? window.localStorage : null);
+                if (storage) {
+                    var savedLive = storage.getItem("hs_live_update");
+                    if (savedLive !== null) {
+                        HS.State.liveUpdate = (savedLive === "true");
+                    }
+                }
+            } catch (e) {}
+            HS.Controls.syncLiveUpdateUI();
+
+            // Live Update Toggle Button Click Listener
+            if (HS.DOM.btnLiveUpdate) {
+                HS.DOM.btnLiveUpdate.addEventListener("click", function () {
+                    HS.Controls.toggleLiveUpdate();
+                });
+            }
+
+            // Initialize time inputs for current FPS
+            HS.Controls.updateTimeInputsForFps((HS.State && HS.State.fps) ? HS.State.fps : 25);
         }
     };
 })(window, document);

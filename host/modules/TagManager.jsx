@@ -561,19 +561,19 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
         var totalLines = scan.numLines;
         var globalMotion = data.motion || "typewriter";
 
-        // Check or create Typewriter Text Animator on text layer if needed
         var detectedAnim = (globalMotion === "typewriter") ? $._smartHighlighter.detectTextAnimator(textLayer) : null;
         var typeStartTime = (detectedAnim && detectedAnim.hasKeys) ? detectedAnim.startTime : comp.time;
         var revealUnit = data.revealUnit || "chars";
+        var typeTotalDur;
         if (detectedAnim && detectedAnim.hasKeys && detectedAnim.endTime > detectedAnim.startTime) {
             typeTotalDur = detectedAnim.endTime - detectedAnim.startTime;
             if (globalMotion === "typewriter") {
-                $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, "opacity", revealUnit);
+                $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, "opacity", revealUnit, false, null, null, null, false);
             }
         } else {
             typeTotalDur = 1.2;
             if (globalMotion === "typewriter") {
-                $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, "opacity", revealUnit);
+                $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, "opacity", revealUnit, false, null, null, null, false);
             }
         }
 
@@ -592,7 +592,7 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
 
             var xform = shapeLayer.property("ADBE Transform Group");
             xform.property("ADBE Position").setValue([0, 0]);
-            xform.property("ADBE Anchor Point").expression = "parent.transform.anchorPoint;";
+            xform.property("ADBE Anchor Point").expression = "hasParent ? parent.transform.anchorPoint : value;";
             xform.property("ADBE Scale").setValue([100, 100]);
 
             var hasOutro = !!box.outro;
@@ -608,8 +608,8 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                 var bEndT = typeStartTime + (bCEndPct / 100) * typeTotalDur;
                 var tExitTime = bEndT + holdTime;
                 xform.property("ADBE Opacity").expression =
-                    'var prog = effect("Progress")("Slider");\n' +
-                    'var baseOpac = (prog <= 0) ? 0 : effect("Local Opacity")("Slider");\n' +
+                    'var prog = effect("Progress")(1);\n' +
+                    'var baseOpac = (prog <= 0) ? 0 : effect("Local Opacity")(1);\n' +
                     'var tExit = ' + tExitTime.toFixed(3) + ';\n' +
                     'var dExit = ' + outDur.toFixed(3) + ';\n' +
                     'if (time > tExit) {\n' +
@@ -619,8 +619,8 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                     '}';
             } else {
                 xform.property("ADBE Opacity").expression =
-                    'var prog = effect("Progress")("Slider");\n' +
-                    '(prog <= 0) ? 0 : effect("Local Opacity")("Slider");';
+                    'var prog = effect("Progress")(1);\n' +
+                    '(prog <= 0) ? 0 : effect("Local Opacity")(1);';
             }
 
             if (box.style === "marker") {
@@ -632,7 +632,7 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                 shapeLayer.blendingMode = BlendingMode.NORMAL;
             }
 
-            // Local Effect Controls
+            // Local Effect Controls (توافقية دولية عبر الفهرس 1)
             var fx = shapeLayer.property("ADBE Effect Parade");
 
             var rawCol = box.color;
@@ -644,22 +644,22 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
             }
 
             var colFx = fx.addProperty("ADBE Color Control"); colFx.name = "Local Color";
-            colFx.property("Color").setValue(boxColor);
+            colFx.property(1).setValue(boxColor);
 
             var pXFx = fx.addProperty("ADBE Slider Control"); pXFx.name = "Local Padding X";
-            pXFx.property("Slider").setValue(box.paddingX);
+            pXFx.property(1).setValue(box.paddingX);
 
             var pYFx = fx.addProperty("ADBE Slider Control"); pYFx.name = "Local Padding Y";
-            pYFx.property("Slider").setValue(box.paddingY);
+            pYFx.property(1).setValue(box.paddingY);
 
             var offFx = fx.addProperty("ADBE Slider Control"); offFx.name = "Local Offset Y";
-            offFx.property("Slider").setValue(0);
+            offFx.property(1).setValue(0);
 
             var rndFx = fx.addProperty("ADBE Slider Control"); rndFx.name = "Local Roundness";
-            rndFx.property("Slider").setValue(box.style === "pill" ? 50 : 0);
+            rndFx.property(1).setValue(box.style === "pill" ? 50 : 0);
 
             var opacFx = fx.addProperty("ADBE Slider Control"); opacFx.name = "Local Opacity";
-            opacFx.property("Slider").setValue(100);
+            opacFx.property(1).setValue(100);
 
             var progFx = fx.addProperty("ADBE Slider Control"); progFx.name = "Progress";
 
@@ -673,15 +673,16 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                 var bEnd = typeStartTime + (cEndPct / 100) * typeTotalDur;
                 if (bEnd <= bStart) bEnd = bStart + 0.04;
 
-                progFx.property("Slider").setValueAtTime(bStart, 0);
-                progFx.property("Slider").setValueAtTime(bEnd, 100);
+                progFx.property(1).setValueAtTime(bStart, 0);
+                progFx.property(1).setValueAtTime(bEnd, 100);
                 try {
-                    progFx.property("Slider").setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
-                    progFx.property("Slider").setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                    progFx.property(1).setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                    progFx.property(1).setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
                 } catch (eLin) {}
 
                 var progExpr =
-                    'var pLayer = parent;\n' +
+                    'var pLayer = hasParent ? parent : null;\n' +
+                    'if (!pLayer) value;\n' +
                     'var anim = null;\n' +
                     'try { anim = pLayer.text.animator("Typewriter Sync"); } catch(e) {}\n' +
                     'if (!anim) { try { anim = pLayer.text.animator("Typewriter"); } catch(e2) {} }\n' +
@@ -697,46 +698,47 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                     '        else if (pEnd) { pVal = pEnd.value; }\n' +
                     '        var c1 = ' + cStartPct.toFixed(4) + ';\n' +
                     '        var c2 = ' + cEndPct.toFixed(4) + ';\n' +
-                    '        if (pVal <= c1) { 0; } else if (pVal >= c2) { 100; } else { linear(pVal, c1, c2, 0, 100); }\n' +
+                    '        (pVal <= c1) ? 0 : ((pVal >= c2) ? 100 : linear(pVal, c1, c2, 0, 100));\n' +
                     '    } catch(err) { value; }\n' +
                     '} else {\n' +
                     '    value;\n' +
                     '}';
-                progFx.property("Slider").expression = progExpr;
+                progFx.property(1).expression = progExpr;
 
             } else if (boxMotion === "pop") {
                 var t1 = comp.time + boxDelay;
                 var t2 = t1 + 0.26;
-                progFx.property("Slider").setValueAtTime(t1, 0);
-                progFx.property("Slider").setValueAtTime(t2, 100);
+                progFx.property(1).setValueAtTime(t1, 0);
+                progFx.property(1).setValueAtTime(t2, 100);
                 if (hasOutro) {
                     var t3 = t2 + holdTime;
                     var t4 = t3 + outDur;
-                    progFx.property("Slider").setValueAtTime(t3, 100);
-                    progFx.property("Slider").setValueAtTime(t4, 0);
+                    progFx.property(1).setValueAtTime(t3, 100);
+                    progFx.property(1).setValueAtTime(t4, 0);
                 }
 
                 var popExpr =
-                    'var p = effect("Progress")("Slider");\n' +
+                    'var p = effect("Progress")(1);\n' +
+                    'var outVal = [100, 100];\n' +
                     'if (p.numKeys >= 2) {\n' +
                     '    var k1 = p.key(1);\n' +
                     '    var k2 = p.key(2);\n' +
                     '    if (time < k1.time) {\n' +
-                    '        [0, 0];\n' +
+                    '        outVal = [0, 0];\n' +
                     '    } else if (time <= k2.time) {\n' +
                     '        var tNorm = (time - k1.time) / Math.max(0.001, (k2.time - k1.time));\n' +
                     '        var s = easeOut(tNorm, 0, 1, 0, 118);\n' +
-                    '        [s, s];\n' +
+                    '        outVal = [s, s];\n' +
                     '    } else {\n' +
                     '        var hasExit = (p.numKeys >= 4);\n' +
                     '        var k3 = hasExit ? p.key(3) : null;\n' +
                     '        var k4 = hasExit ? p.key(4) : null;\n' +
                     '        if (hasExit && time >= k4.time) {\n' +
-                    '            [0, 0];\n' +
+                    '            outVal = [0, 0];\n' +
                     '        } else if (hasExit && time >= k3.time) {\n' +
                     '            var tOutNorm = (time - k3.time) / Math.max(0.001, (k4.time - k3.time));\n' +
                     '            var sOut = easeIn(tOutNorm, 0, 1, 100, 0);\n' +
-                    '            [sOut, sOut];\n' +
+                    '            outVal = [sOut, sOut];\n' +
                     '        } else {\n' +
                     '            var t = time - k2.time;\n' +
                     '            if (t < 0.55) {\n' +
@@ -744,50 +746,51 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                     '                var decay = 7.5;\n' +
                     '                var amp = 18.0;\n' +
                     '                var w = amp * Math.cos(freq * t * 2 * Math.PI) / Math.exp(decay * t);\n' +
-                    '                [100 + w, 100 + w];\n' +
+                    '                outVal = [100 + w, 100 + w];\n' +
                     '            } else {\n' +
-                    '                [100, 100];\n' +
+                    '                outVal = [100, 100];\n' +
                     '            }\n' +
                     '        }\n' +
                     '    }\n' +
                     '} else {\n' +
                     '    var prog = p.value;\n' +
-                    '    (prog <= 0) ? [0, 0] : [100, 100];\n' +
-                    '}';
+                    '    outVal = (prog <= 0) ? [0, 0] : [100, 100];\n' +
+                    '}\n' +
+                    'outVal;';
                 xform.property("ADBE Scale").expression = popExpr;
 
             } else if (boxMotion === "snap") {
                 var t1 = comp.time + boxDelay;
                 var t2 = t1 + 0.04;
-                progFx.property("Slider").setValueAtTime(t1, 0);
-                progFx.property("Slider").setValueAtTime(t2, 100);
+                progFx.property(1).setValueAtTime(t1, 0);
+                progFx.property(1).setValueAtTime(t2, 100);
                 if (hasOutro) {
                     var t3 = t2 + holdTime;
                     var t4 = t3 + 0.04;
-                    progFx.property("Slider").setValueAtTime(t3, 100);
-                    progFx.property("Slider").setValueAtTime(t4, 0);
+                    progFx.property(1).setValueAtTime(t3, 100);
+                    progFx.property(1).setValueAtTime(t4, 0);
                 }
 
             } else {
                 // Smooth Vox Wipe: punchy attack, luxurious deceleration
                 var t1 = comp.time + boxDelay;
                 var t2 = t1 + 0.32;
-                progFx.property("Slider").setValueAtTime(t1, 0);
-                progFx.property("Slider").setValueAtTime(t2, 100);
+                progFx.property(1).setValueAtTime(t1, 0);
+                progFx.property(1).setValueAtTime(t2, 100);
                 var easePunch = new KeyframeEase(0, 25);
                 var easeDecel = new KeyframeEase(0, 80);
-                progFx.property("Slider").setTemporalEaseAtKey(1, [easePunch], [easePunch]);
-                progFx.property("Slider").setTemporalEaseAtKey(2, [easeDecel], [easeDecel]);
+                progFx.property(1).setTemporalEaseAtKey(1, [easePunch], [easePunch]);
+                progFx.property(1).setTemporalEaseAtKey(2, [easeDecel], [easeDecel]);
 
                 if (hasOutro) {
                     var t3 = t2 + holdTime;
                     var t4 = t3 + 0.28;
-                    progFx.property("Slider").setValueAtTime(t3, 100);
-                    progFx.property("Slider").setValueAtTime(t4, 0);
+                    progFx.property(1).setValueAtTime(t3, 100);
+                    progFx.property(1).setValueAtTime(t4, 0);
                     var easeOutIn = new KeyframeEase(0, 30);
                     var easeOutEnd = new KeyframeEase(0, 75);
-                    progFx.property("Slider").setTemporalEaseAtKey(3, [easeOutIn], [easeOutIn]);
-                    progFx.property("Slider").setTemporalEaseAtKey(4, [easeOutEnd], [easeOutEnd]);
+                    progFx.property(1).setTemporalEaseAtKey(3, [easeOutIn], [easeOutIn]);
+                    progFx.property(1).setTemporalEaseAtKey(4, [easeOutEnd], [easeOutEnd]);
                 }
             }
 
@@ -846,9 +849,10 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
 
             // Size expression
             var sizeExpr =
-                'var pLayer = parent;\n' +
-                'var pX = effect("Local Padding X")("Slider");\n' +
-                'var pY = effect("Local Padding Y")("Slider");\n\n' +
+                'var pLayer = hasParent ? parent : null;\n' +
+                'if (!pLayer) value;\n' +
+                'var pX = effect("Local Padding X")(1);\n' +
+                'var pY = effect("Local Padding Y")(1);\n\n' +
                 'var baseFS = ' + baseFS.toFixed(2) + ';\n' +
                 'var curFS = baseFS;\n' +
                 'try {\n' +
@@ -858,7 +862,7 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                 '    curFS = baseFS * (curR.height / ' + baseTotalH.toFixed(2) + ');\n' +
                 '}\n' +
                 'var fontRatio = curFS / baseFS;\n\n' +
-                'var p = clamp(effect("Progress")("Slider") / 100, 0, 1);\n' +
+                'var p = clamp(effect("Progress")(1) / 100, 0, 1);\n' +
                 'var fullH;\n';
 
             if (box.style === "underline") {
@@ -872,9 +876,10 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
 
             // Position expression
             var posExpr =
-                'var pLayer = parent;\n' +
-                'var pX = effect("Local Padding X")("Slider");\n' +
-                'var offY = effect("Local Offset Y")("Slider");\n\n' +
+                'var pLayer = hasParent ? parent : null;\n' +
+                'if (!pLayer) value;\n' +
+                'var pX = effect("Local Padding X")(1);\n' +
+                'var offY = effect("Local Offset Y")(1);\n\n' +
                 'var r = pLayer.sourceRectAtTime();\n' +
                 'var baseFS = ' + baseFS.toFixed(2) + ';\n' +
                 'var curFS = baseFS;\n' +
@@ -884,7 +889,7 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                 '    curFS = baseFS * (r.height / ' + baseTotalH.toFixed(2) + ');\n' +
                 '}\n' +
                 'var fontRatio = curFS / baseFS;\n' +
-                'var p = clamp(effect("Progress")("Slider") / 100, 0, 1);\n' +
+                'var p = clamp(effect("Progress")(1) / 100, 0, 1);\n' +
                 'var curX, curY;\n' +
                 'var dynH = ' + box.height.toFixed(2) + ' * fontRatio;\n' +
                 'var linePitch = (' + totalLines + ' > 1) ? ((r.height - dynH) / (' + (totalLines - 1) + ')) : 0;\n';
@@ -917,7 +922,7 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
 
             // Roundness expression
             rect.property("ADBE Vector Rect Roundness").expression =
-                'var r = effect("Local Roundness")("Slider");\n' +
+                'var r = effect("Local Roundness")(1);\n' +
                 'var sz = thisProperty.propertyGroup(1).size;\n' +
                 'Math.min(Math.max(0, r), Math.min(sz[0], sz[1]) / 2);';
 
@@ -926,11 +931,11 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
                 var stroke = gContents.addProperty("ADBE Vector Graphic - Stroke");
                 stroke.name = "Outline Stroke";
                 stroke.property("ADBE Vector Stroke Width").setValue(3);
-                stroke.property("ADBE Vector Stroke Color").expression = 'effect("Local Color")("Color");';
+                stroke.property("ADBE Vector Stroke Color").expression = 'effect("Local Color")(1);';
             } else {
                 var fill = gContents.addProperty("ADBE Vector Graphic - Fill");
                 fill.name = "Fill Color";
-                fill.property("ADBE Vector Fill Color").expression = 'effect("Local Color")("Color");';
+                fill.property("ADBE Vector Fill Color").expression = 'effect("Local Color")(1);';
             }
         }
 
@@ -1134,7 +1139,7 @@ $._smartHighlighter.getAppliedPhrases = function (targetLayerName) {
                 try {
                     var colFx = l.effect("Local Color");
                     if (colFx) {
-                        var cVal = colFx.property("Color").value;
+                        var cVal = colFx.property(1).value;
                         if (cVal && $._smartHighlighter.rgbToHex) {
                             pCol = $._smartHighlighter.rgbToHex(cVal);
                         }

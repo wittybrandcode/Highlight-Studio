@@ -59,20 +59,23 @@ $._smartHighlighter.recipes = {
 $._smartHighlighter.recipes.registerMotion("typewriter", {
     isTypewriter: true,
 
-    setupTextAnimator: function (textLayer, typeStartTime, typeTotalDur, styleType, revealUnit) {
+    setupTextAnimator: function (textLayer, typeStartTime, typeTotalDur, styleType, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers) {
         var animStyle = (styleType === "scale" || styleType === "pop") ? "scale" : "opacity";
-        $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, animStyle, revealUnit);
+        $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, animStyle, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers);
     },
 
     getProgressExpression: function (ctx) {
         return (
-            'var pLayer = parent;\n' +
+            'var res = value;\n' +
+            'var pLayer = hasParent ? parent : null;\n' +
+            'if (!pLayer) value;\n' +
             'var anim = null;\n' +
             'try { anim = pLayer.text.animator("Typewriter Sync"); } catch(e) {}\n' +
             'if (!anim) { try { anim = pLayer.text.animator("Typewriter"); } catch(e2) {} }\n' +
             'if (anim && anim.numProperties >= 1) {\n' +
             '    try {\n' +
-            '        var sel = anim.property("ADBE Text Selectors").property(1);\n' +
+            '        var sels = anim.property("ADBE Text Selectors");\n' +
+            '        var sel = sels.property(1);\n' +
             '        var pVal = 0;\n' +
             '        var pStart = null; try { pStart = sel.property("ADBE Text Percent Start"); } catch(e1) { try { pStart = sel.property("Start"); } catch(e11) {} }\n' +
             '        var pEnd = null; try { pEnd = sel.property("ADBE Text Percent End"); } catch(e2) { try { pEnd = sel.property("End"); } catch(e22) {} }\n' +
@@ -82,33 +85,65 @@ $._smartHighlighter.recipes.registerMotion("typewriter", {
             '        else if (pEnd) { pVal = pEnd.value; }\n' +
             '        var c1 = ' + ctx.timing.cStartPct.toFixed(4) + ';\n' +
             '        var c2 = ' + ctx.timing.cEndPct.toFixed(4) + ';\n' +
-            '        if (pVal <= c1) { 0; } else if (pVal >= c2) { 100; } else { linear(pVal, c1, c2, 0, 100); }\n' +
-            '    } catch(err) { value; }\n' +
-            '} else {\n' +
-            '    value;\n' +
-            '}'
+            '        res = (pVal <= c1) ? 0 : ((pVal >= c2) ? 100 : linear(pVal, c1, c2, 0, 100));\n' +
+            '        if (sels.numProperties >= 2) {\n' +
+            '            var outSel = sels.property(2);\n' +
+            '            var oStart = null; try { oStart = outSel.property("ADBE Text Percent Start"); } catch(e3) {}\n' +
+            '            var oEnd = null; try { oEnd = outSel.property("ADBE Text Percent End"); } catch(e4) {}\n' +
+            '            if (oStart && oStart.numKeys > 0) {\n' +
+            '                var oVal = oStart.value;\n' +
+            '                var outPct = (oVal >= c2) ? 100 : ((oVal <= c1) ? 0 : linear(oVal, c1, c2, 0, 100));\n' +
+            '                res = Math.min(res, outPct);\n' +
+            '            } else if (oEnd && oEnd.numKeys > 0) {\n' +
+            '                var oVal2 = oEnd.value;\n' +
+            '                var outPct2 = (oVal2 <= c1) ? 100 : ((oVal2 >= c2) ? 0 : linear(oVal2, c1, c2, 100, 0));\n' +
+            '                res = Math.min(res, outPct2);\n' +
+            '            }\n' +
+            '        }\n' +
+            '    } catch(err) {}\n' +
+            '}\n' +
+            'res;'
         );
     },
 
     getWidthSnippet: function (ctx) {
         var revealUnit = ctx.timing.revealUnit || "chars";
         var box = ctx.box;
+        var boxOutroOrder = ctx.boxOutroOrder || "first";
 
         if (revealUnit === "words" && box.wOffsets && box.wOffsets.length > 0) {
             var wOffsetsStr = "[" + box.wOffsets.join(",") + "]";
             return (
                 'var wOffsets = ' + wOffsetsStr + ';\n' +
                 'var numWords = wOffsets.length;\n' +
+                'var totalWordW = (numWords > 0) ? wOffsets[numWords - 1] : 0;\n' +
                 'var curTextW = 0;\n' +
+                'var startOffset = 0;\n' +
                 'if (p > 0 && numWords > 0) {\n' +
                 '    var visWords = Math.min(numWords, Math.max(0, Math.floor(p * numWords + 0.5)));\n' +
-                '    curTextW = (visWords > 0) ? wOffsets[visWords - 1] : 0;\n' +
+                '    if (typeof isForwardOutro !== "undefined" && isForwardOutro) {\n' +
+                '        if (visWords >= numWords) {\n' +
+                '            curTextW = totalWordW;\n' +
+                '            startOffset = 0;\n' +
+                '        } else if (visWords > 0) {\n' +
+                '            var hiddenW = wOffsets[numWords - visWords - 1];\n' +
+                '            curTextW = totalWordW - hiddenW;\n' +
+                '            startOffset = hiddenW;\n' +
+                '        } else {\n' +
+                '            curTextW = 0;\n' +
+                '            startOffset = totalWordW;\n' +
+                '        }\n' +
+                '    } else {\n' +
+                '        curTextW = (visWords > 0) ? wOffsets[visWords - 1] : 0;\n' +
+                '        startOffset = 0;\n' +
+                '    }\n' +
                 '}\n' +
                 'var curW = (p <= 0 || curTextW <= 0) ? 0 : (curTextW * fontRatio + pX * 2);\n'
             );
         } else if (revealUnit === "lines") {
             return (
                 'var baseW = ' + box.width.toFixed(2) + ' * fontRatio;\n' +
+                'var startOffset = 0;\n' +
                 'var curW = (p >= 0.5) ? (baseW + pX * 2) : 0;\n'
             );
         } else if (box.cOffsets && box.cOffsets.length > 0) {
@@ -116,7 +151,9 @@ $._smartHighlighter.recipes.registerMotion("typewriter", {
             return (
                 'var cOffsets = ' + cOffsetsStr + ';\n' +
                 'var numChars = cOffsets.length;\n' +
+                'var totalCharW = (numChars > 0) ? cOffsets[numChars - 1] : 0;\n' +
                 'var curTextW = 0;\n' +
+                'var startOffset = 0;\n' +
                 'if (p > 0 && numChars > 0) {\n' +
                 '    var smVal = 0;\n' +
                 '    try {\n' +
@@ -134,16 +171,31 @@ $._smartHighlighter.recipes.registerMotion("typewriter", {
                 '            }\n' +
                 '        }\n' +
                 '    } catch(eSm) {}\n' +
-                '    if (smVal > 0) {\n' +
+                '    if (typeof isForwardOutro !== "undefined" && isForwardOutro) {\n' +
+                '        var visChars = Math.min(numChars, Math.max(0, Math.floor(p * numChars + 0.5)));\n' +
+                '        if (visChars >= numChars) {\n' +
+                '            curTextW = totalCharW;\n' +
+                '            startOffset = 0;\n' +
+                '        } else if (visChars > 0) {\n' +
+                '            var hiddenW = cOffsets[numChars - visChars - 1];\n' +
+                '            curTextW = totalCharW - hiddenW;\n' +
+                '            startOffset = hiddenW;\n' +
+                '        } else {\n' +
+                '            curTextW = 0;\n' +
+                '            startOffset = totalCharW;\n' +
+                '        }\n' +
+                '    } else if (smVal > 0) {\n' +
                 '        var cFloat = p * numChars;\n' +
                 '        var cIdx = Math.min(numChars - 1, Math.floor(cFloat));\n' +
                 '        var prevW = (cIdx > 0) ? cOffsets[cIdx - 1] : 0;\n' +
                 '        var nextW = cOffsets[cIdx];\n' +
                 '        var frac = cFloat - cIdx;\n' +
                 '        curTextW = prevW + frac * (nextW - prevW);\n' +
+                '        startOffset = 0;\n' +
                 '    } else {\n' +
                 '        var visChars = Math.min(numChars, Math.max(0, Math.floor(p * numChars + 0.5)));\n' +
                 '        curTextW = (visChars > 0) ? cOffsets[visChars - 1] : 0;\n' +
+                '        startOffset = 0;\n' +
                 '    }\n' +
                 '}\n' +
                 'var curW = (p <= 0 || curTextW <= 0) ? 0 : (curTextW * fontRatio + pX * 2);\n'
@@ -152,6 +204,7 @@ $._smartHighlighter.recipes.registerMotion("typewriter", {
 
         return (
             'var baseW = ' + box.width.toFixed(2) + ' * fontRatio;\n' +
+            'var startOffset = (typeof isForwardOutro !== "undefined" && isForwardOutro) ? (baseW * (1 - p)) : 0;\n' +
             'var curW = (p <= 0) ? 0 : (baseW * p + pX * 2);\n'
         );
     },
@@ -185,6 +238,7 @@ $._smartHighlighter.recipes.registerMotion("wipe", {
     getWidthSnippet: function (ctx) {
         return (
             'var baseW = ' + ctx.box.width.toFixed(2) + ' * fontRatio;\n' +
+            'var startOffset = (typeof isForwardOutro !== "undefined" && isForwardOutro) ? (baseW * (1 - p)) : 0;\n' +
             'var curW = (p <= 0) ? 0 : (baseW * p + pX * 2);\n'
         );
     },
@@ -200,26 +254,27 @@ $._smartHighlighter.recipes.registerMotion("pop", {
 
     applyTransformScale: function (scaleProp, ctx) {
         var scaleExpr = 
-            'var p = effect("Progress")("Slider");\n' +
+            'var p = effect("Progress")(1);\n' +
+            'var outVal = [100, 100];\n' +
             'if (p.numKeys >= 2) {\n' +
             '    var k1 = p.key(1);\n' +
             '    var k2 = p.key(2);\n' +
             '    if (time < k1.time) {\n' +
-            '        [0, 0];\n' +
+            '        outVal = [0, 0];\n' +
             '    } else if (time <= k2.time) {\n' +
             '        var tNorm = (time - k1.time) / Math.max(0.001, (k2.time - k1.time));\n' +
             '        var s = easeOut(tNorm, 0, 1, 0, 118);\n' +
-            '        [s, s];\n' +
+            '        outVal = [s, s];\n' +
             '    } else {\n' +
             '        var hasExit = (p.numKeys >= 4);\n' +
             '        var k3 = hasExit ? p.key(3) : null;\n' +
             '        var k4 = hasExit ? p.key(4) : null;\n' +
             '        if (hasExit && time >= k4.time) {\n' +
-            '            [0, 0];\n' +
+            '            outVal = [0, 0];\n' +
             '        } else if (hasExit && time >= k3.time) {\n' +
             '            var tOutNorm = (time - k3.time) / Math.max(0.001, (k4.time - k3.time));\n' +
             '            var sOut = easeIn(tOutNorm, 0, 1, 100, 0);\n' +
-            '            [sOut, sOut];\n' +
+            '            outVal = [sOut, sOut];\n' +
             '        } else {\n' +
             '            var t = time - k2.time;\n' +
             '            if (t < 0.55) {\n' +
@@ -227,16 +282,17 @@ $._smartHighlighter.recipes.registerMotion("pop", {
             '                var decay = 7.5;\n' +
             '                var amp = 18.0;\n' +
             '                var w = amp * Math.cos(freq * t * 2 * Math.PI) / Math.exp(decay * t);\n' +
-            '                [100 + w, 100 + w];\n' +
+            '                outVal = [100 + w, 100 + w];\n' +
             '            } else {\n' +
-            '                [100, 100];\n' +
+            '                outVal = [100, 100];\n' +
             '            }\n' +
             '        }\n' +
             '    }\n' +
             '} else {\n' +
             '    var prog = p.value;\n' +
-            '    (prog <= 0) ? [0, 0] : [100, 100];\n' +
-            '}';
+            '    outVal = (prog <= 0) ? [0, 0] : [100, 100];\n' +
+            '}\n' +
+            'outVal;';
         scaleProp.expression = scaleExpr;
     },
 
@@ -292,18 +348,35 @@ var getStandardPositionSnippet = function (ctx) {
     var box = ctx.box;
     var totalLines = ctx.totalLines;
     var isCenter = ctx.isCenter;
+    var boxOutroOrder = ctx.boxOutroOrder || "first";
+    var isForwardOutro = (ctx.hasOutro && boxOutroOrder === "first");
 
     var posSnippet = 
-        'var pLayer = parent;\n' +
-        'var useM = effect("Use Master Controls")("Checkbox");\n' +
-        'var pX = (useM == 1) ? pLayer.effect("Master Padding X")("Slider") : effect("Local Padding X")("Slider");\n' +
-        'var offY = (useM == 1) ? pLayer.effect("Master Offset Y")("Slider") : effect("Local Offset Y")("Slider");\n\n' +
+        'var pLayer = hasParent ? parent : null;\n' +
+        'if (!pLayer) value;\n' +
+        'var useM = effect("Use Master Controls")(1);\n' +
+        'var pX = (useM == 1 && pLayer) ? pLayer.effect("Master Padding X")(1) : effect("Local Padding X")(1);\n' +
+        'var offY = (useM == 1 && pLayer) ? pLayer.effect("Master Offset Y")(1) : effect("Local Offset Y")(1);\n\n' +
         'var r = pLayer.sourceRectAtTime();\n' +
         'var baseFS = ' + ctx.baseFS.toFixed(2) + ';\n' +
         'var curFS = baseFS;\n' +
         'try { curFS = pLayer.text.sourceText.style.fontSize; } catch(err) { curFS = baseFS * (r.height / ' + ctx.baseTotalH.toFixed(2) + '); }\n' +
         'var fontRatio = curFS / baseFS;\n' +
-        'var p = clamp(effect("Progress")("Slider") / 100, 0, 1);\n' +
+        'var p = clamp(effect("Progress")(1) / 100, 0, 1);\n' +
+        'var isOutro = false;\n' +
+        'try {\n' +
+        '    var pProg = effect("Progress")(1);\n' +
+        '    if (pProg.numKeys >= 4 && time >= pProg.key(3).time) {\n' +
+        '        isOutro = true;\n' +
+        '    } else if (pLayer && pLayer.marker && pLayer.marker.numKeys > 0) {\n' +
+        '        for (var mi = 1; mi <= pLayer.marker.numKeys; mi++) {\n' +
+        '            if (pLayer.marker.key(mi).comment === "HL_OUT_START" && time >= pLayer.marker.key(mi).time) {\n' +
+        '                isOutro = true; break;\n' +
+        '            }\n' +
+        '        }\n' +
+        '    }\n' +
+        '} catch(eOD) {}\n' +
+        'var isForwardOutro = isOutro && ' + (isForwardOutro ? 'true' : 'false') + ';\n' +
         'var curX, curY;\n' +
         'var dynH = ' + box.height.toFixed(2) + ' * fontRatio;\n' +
         'var linePitch = (' + totalLines + ' > 1) ? ((r.height - dynH) / (' + (totalLines - 1) + ')) : 0;\n';
@@ -320,22 +393,22 @@ var getStandardPositionSnippet = function (ctx) {
         if (box.rtl_k) {
             posSnippet += 
                 'var rightEdge = (r.left + r.width) - (' + box.wordOffset.toFixed(2) + ' * fontRatio);\n' +
-                'curX = rightEdge + pX - (curW / 2);\n' +
+                'curX = (rightEdge + pX - (startOffset * fontRatio)) - (curW / 2);\n' +
                 '[curX, curY + offY];';
         } else if (isCenter) {
             posSnippet += 
                 'var lineLeft = r.left + (r.width / 2) - (' + (box.lineWidth / 2).toFixed(2) + ' * fontRatio);\n' +
-                'curX = lineLeft + (' + box.wordOffset.toFixed(2) + ' * fontRatio) - pX + (curW / 2);\n' +
+                'curX = (lineLeft + (' + box.wordOffset.toFixed(2) + ' * fontRatio) - pX + (startOffset * fontRatio)) + (curW / 2);\n' +
                 '[curX, curY + offY];';
         } else {
             posSnippet += 
-                'curX = r.left + (' + box.wordOffset.toFixed(2) + ' * fontRatio) - pX + (curW / 2);\n' +
+                'curX = (r.left + (' + box.wordOffset.toFixed(2) + ' * fontRatio) - pX + (startOffset * fontRatio)) + (curW / 2);\n' +
                 '[curX, curY + offY];';
         }
     } else {
         if (box.rtl_k) {
             posSnippet += 
-                'curX = (r.left + r.width) + pX - (curW / 2);\n' +
+                'curX = ((r.left + r.width) + pX - (startOffset * fontRatio)) - (curW / 2);\n' +
                 '[curX, curY + offY];';
         } else if (isCenter) {
             posSnippet += 
@@ -343,7 +416,7 @@ var getStandardPositionSnippet = function (ctx) {
                 '[curX, curY + offY];';
         } else {
             posSnippet += 
-                'curX = r.left - pX + (curW / 2);\n' +
+                'curX = (r.left - pX + (startOffset * fontRatio)) + (curW / 2);\n' +
                 '[curX, curY + offY];';
         }
     }
@@ -354,16 +427,34 @@ var getStandardPositionSnippet = function (ctx) {
 // Base Helper for Box Size
 var getStandardSizeSnippet = function (ctx) {
     var box = ctx.box;
+    var boxOutroOrder = ctx.boxOutroOrder || "first";
+    var isForwardOutro = (ctx.hasOutro && boxOutroOrder === "first");
+
     var sizeSnippet = 
-        'var pLayer = parent;\n' +
-        'var useM = effect("Use Master Controls")("Checkbox");\n' +
-        'var pX = (useM == 1) ? pLayer.effect("Master Padding X")("Slider") : effect("Local Padding X")("Slider");\n' +
-        'var pY = (useM == 1) ? pLayer.effect("Master Padding Y")("Slider") : effect("Local Padding Y")("Slider");\n\n' +
+        'var pLayer = hasParent ? parent : null;\n' +
+        'if (!pLayer) value;\n' +
+        'var useM = effect("Use Master Controls")(1);\n' +
+        'var pX = (useM == 1 && pLayer) ? pLayer.effect("Master Padding X")(1) : effect("Local Padding X")(1);\n' +
+        'var pY = (useM == 1 && pLayer) ? pLayer.effect("Master Padding Y")(1) : effect("Local Padding Y")(1);\n\n' +
         'var baseFS = ' + ctx.baseFS.toFixed(2) + ';\n' +
         'var curFS = baseFS;\n' +
         'try { curFS = pLayer.text.sourceText.style.fontSize; } catch(err) { curFS = baseFS * (pLayer.sourceRectAtTime().height / ' + ctx.baseTotalH.toFixed(2) + '); }\n' +
         'var fontRatio = curFS / baseFS;\n\n' +
-        'var p = clamp(effect("Progress")("Slider") / 100, 0, 1);\n' +
+        'var p = clamp(effect("Progress")(1) / 100, 0, 1);\n' +
+        'var isOutro = false;\n' +
+        'try {\n' +
+        '    var pProg = effect("Progress")(1);\n' +
+        '    if (pProg.numKeys >= 4 && time >= pProg.key(3).time) {\n' +
+        '        isOutro = true;\n' +
+        '    } else if (pLayer && pLayer.marker && pLayer.marker.numKeys > 0) {\n' +
+        '        for (var mi = 1; mi <= pLayer.marker.numKeys; mi++) {\n' +
+        '            if (pLayer.marker.key(mi).comment === "HL_OUT_START" && time >= pLayer.marker.key(mi).time) {\n' +
+        '                isOutro = true; break;\n' +
+        '            }\n' +
+        '        }\n' +
+        '    }\n' +
+        '} catch(eOD) {}\n' +
+        'var isForwardOutro = isOutro && ' + (isForwardOutro ? 'true' : 'false') + ';\n' +
         'var fullH;\n';
 
     if (ctx.style.id === "underline") {
@@ -400,10 +491,10 @@ $._smartHighlighter.recipes.registerStyle("box", {
         var fill = gContents.addProperty("ADBE Vector Graphic - Fill");
         fill.name = "Fill Color";
         fill.property("ADBE Vector Fill Color").expression = 
-            'var pLayer = parent;\n' +
-            'var useM = effect("Use Master Controls")("Checkbox");\n' +
-            'var mCol = pLayer.effect("Master Highlight Color")("Color");\n' +
-            'var lColProp = effect("Local Color")("Color");\n' +
+            'var pLayer = hasParent ? parent : null;\n' +
+            'var useM = effect("Use Master Controls")(1);\n' +
+            'var mCol = (pLayer && pLayer.effect("Master Highlight Color")) ? pLayer.effect("Master Highlight Color")(1) : [1, 0.9, 0, 1];\n' +
+            'var lColProp = effect("Local Color")(1);\n' +
             '(useM == 0 || lColProp.numKeys > 0) ? lColProp.value : mCol;';
     }
 });
@@ -432,10 +523,10 @@ $._smartHighlighter.recipes.registerStyle("pill", {
         var fill = gContents.addProperty("ADBE Vector Graphic - Fill");
         fill.name = "Fill Color";
         fill.property("ADBE Vector Fill Color").expression = 
-            'var pLayer = parent;\n' +
-            'var useM = effect("Use Master Controls")("Checkbox");\n' +
-            'var mCol = pLayer.effect("Master Highlight Color")("Color");\n' +
-            'var lColProp = effect("Local Color")("Color");\n' +
+            'var pLayer = hasParent ? parent : null;\n' +
+            'var useM = effect("Use Master Controls")(1);\n' +
+            'var mCol = (pLayer && pLayer.effect("Master Highlight Color")) ? pLayer.effect("Master Highlight Color")(1) : [1, 0.9, 0, 1];\n' +
+            'var lColProp = effect("Local Color")(1);\n' +
             '(useM == 0 || lColProp.numKeys > 0) ? lColProp.value : mCol;';
     }
 });
@@ -465,10 +556,10 @@ $._smartHighlighter.recipes.registerStyle("marker", {
         var fill = gContents.addProperty("ADBE Vector Graphic - Fill");
         fill.name = "Fill Color";
         fill.property("ADBE Vector Fill Color").expression = 
-            'var pLayer = parent;\n' +
-            'var useM = effect("Use Master Controls")("Checkbox");\n' +
-            'var mCol = pLayer.effect("Master Highlight Color")("Color");\n' +
-            'var lColProp = effect("Local Color")("Color");\n' +
+            'var pLayer = hasParent ? parent : null;\n' +
+            'var useM = effect("Use Master Controls")(1);\n' +
+            'var mCol = (pLayer && pLayer.effect("Master Highlight Color")) ? pLayer.effect("Master Highlight Color")(1) : [1, 0.9, 0, 1];\n' +
+            'var lColProp = effect("Local Color")(1);\n' +
             '(useM == 0 || lColProp.numKeys > 0) ? lColProp.value : mCol;';
     }
 });
@@ -497,10 +588,10 @@ $._smartHighlighter.recipes.registerStyle("underline", {
         var fill = gContents.addProperty("ADBE Vector Graphic - Fill");
         fill.name = "Fill Color";
         fill.property("ADBE Vector Fill Color").expression = 
-            'var pLayer = parent;\n' +
-            'var useM = effect("Use Master Controls")("Checkbox");\n' +
-            'var mCol = pLayer.effect("Master Highlight Color")("Color");\n' +
-            'var lColProp = effect("Local Color")("Color");\n' +
+            'var pLayer = hasParent ? parent : null;\n' +
+            'var useM = effect("Use Master Controls")(1);\n' +
+            'var mCol = (pLayer && pLayer.effect("Master Highlight Color")) ? pLayer.effect("Master Highlight Color")(1) : [1, 0.9, 0, 1];\n' +
+            'var lColProp = effect("Local Color")(1);\n' +
             '(useM == 0 || lColProp.numKeys > 0) ? lColProp.value : mCol;';
     }
 });
@@ -530,10 +621,10 @@ $._smartHighlighter.recipes.registerStyle("outline", {
         stroke.name = "Outline Stroke";
         stroke.property("ADBE Vector Stroke Width").setValue(3);
         stroke.property("ADBE Vector Stroke Color").expression = 
-            'var pLayer = parent;\n' +
-            'var useM = effect("Use Master Controls")("Checkbox");\n' +
-            'var mCol = pLayer.effect("Master Highlight Color")("Color");\n' +
-            'var lColProp = effect("Local Color")("Color");\n' +
+            'var pLayer = hasParent ? parent : null;\n' +
+            'var useM = effect("Use Master Controls")(1);\n' +
+            'var mCol = (pLayer && pLayer.effect("Master Highlight Color")) ? pLayer.effect("Master Highlight Color")(1) : [1, 0.9, 0, 1];\n' +
+            'var lColProp = effect("Local Color")(1);\n' +
             '(useM == 0 || lColProp.numKeys > 0) ? lColProp.value : mCol;';
     }
 });
