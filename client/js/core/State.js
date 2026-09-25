@@ -11,6 +11,8 @@
     HS.State = {
         scope: "all",               // "all" | "line"
         mainTab: "paragraph",       // "paragraph" | "phrases"
+        typewriterMode: "sequential",      // "sequential" (cascading lines) | "parallel" (concurrent lines)
+        typewriterSpeedMode: "constant",   // "constant" (equal word pacing) | "synced" (synchronized line finish)
         outroOrder: "first",        // "first" (1->N) | "last" (N->1)
         textOutroOrder: "first",    // "first" (1->N) | "last" (N->1)
         boxOutroOrder: "first",     // "first" (1->N) | "last" (N->1)

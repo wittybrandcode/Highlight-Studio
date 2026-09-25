@@ -59,9 +59,9 @@ $._smartHighlighter.recipes = {
 $._smartHighlighter.recipes.registerMotion("typewriter", {
     isTypewriter: true,
 
-    setupTextAnimator: function (textLayer, typeStartTime, typeTotalDur, styleType, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers) {
+    setupTextAnimator: function (textLayer, tStart, tEnd, styleType, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers, typewriterMode, typewriterSpeedMode, linesData, totalTextChars, totalWords) {
         var animStyle = (styleType === "scale" || styleType === "pop") ? "scale" : "opacity";
-        $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, animStyle, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers);
+        $._smartHighlighter.ensureTextTypewriter(textLayer, tStart, tEnd, animStyle, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers, typewriterMode, typewriterSpeedMode, linesData, totalTextChars, totalWords);
     },
 
     getProgressExpression: function (ctx) {
@@ -349,7 +349,7 @@ var getStandardPositionSnippet = function (ctx) {
     var totalLines = ctx.totalLines;
     var isCenter = ctx.isCenter;
     var boxOutroOrder = ctx.boxOutroOrder || "first";
-    var isForwardOutro = (ctx.hasOutro && boxOutroOrder === "first");
+    var isForwardOutro = (boxOutroOrder === "first");
 
     var posSnippet = 
         'var pLayer = hasParent ? parent : null;\n' +
@@ -366,9 +366,12 @@ var getStandardPositionSnippet = function (ctx) {
         'var isOutro = false;\n' +
         'try {\n' +
         '    var pProg = effect("Progress")(1);\n' +
-        '    if (pProg.numKeys >= 4 && time >= pProg.key(3).time) {\n' +
+        '    if (pProg.velocity < -0.001) {\n' +
         '        isOutro = true;\n' +
-        '    } else if (pLayer && pLayer.marker && pLayer.marker.numKeys > 0) {\n' +
+        '    } else if (pProg.numKeys >= 4 && time >= pProg.key(3).time) {\n' +
+        '        isOutro = true;\n' +
+        '    }\n' +
+        '    if (!isOutro && pLayer && pLayer.marker && pLayer.marker.numKeys > 0) {\n' +
         '        for (var mi = 1; mi <= pLayer.marker.numKeys; mi++) {\n' +
         '            if (pLayer.marker.key(mi).comment === "HL_OUT_START" && time >= pLayer.marker.key(mi).time) {\n' +
         '                isOutro = true; break;\n' +
@@ -408,15 +411,18 @@ var getStandardPositionSnippet = function (ctx) {
     } else {
         if (box.rtl_k) {
             posSnippet += 
-                'curX = ((r.left + r.width) + pX - (startOffset * fontRatio)) - (curW / 2);\n' +
+                'var rOff = ' + (box.rightOffset ? box.rightOffset.toFixed(2) : '0') + ' * fontRatio;\n' +
+                'curX = ((r.left + r.width) - rOff + pX - (startOffset * fontRatio)) - (curW / 2);\n' +
                 '[curX, curY + offY];';
         } else if (isCenter) {
             posSnippet += 
-                'curX = r.left + (r.width / 2);\n' +
+                'var cOff = ' + (box.centerOffset ? box.centerOffset.toFixed(2) : '0') + ' * fontRatio;\n' +
+                'curX = r.left + (r.width / 2) + cOff;\n' +
                 '[curX, curY + offY];';
         } else {
             posSnippet += 
-                'curX = (r.left - pX + (startOffset * fontRatio)) + (curW / 2);\n' +
+                'var lOff = ' + (box.leftOffset ? box.leftOffset.toFixed(2) : '0') + ' * fontRatio;\n' +
+                'curX = (r.left + lOff - pX + (startOffset * fontRatio)) + (curW / 2);\n' +
                 '[curX, curY + offY];';
         }
     }
@@ -428,7 +434,7 @@ var getStandardPositionSnippet = function (ctx) {
 var getStandardSizeSnippet = function (ctx) {
     var box = ctx.box;
     var boxOutroOrder = ctx.boxOutroOrder || "first";
-    var isForwardOutro = (ctx.hasOutro && boxOutroOrder === "first");
+    var isForwardOutro = (boxOutroOrder === "first");
 
     var sizeSnippet = 
         'var pLayer = hasParent ? parent : null;\n' +
@@ -444,9 +450,12 @@ var getStandardSizeSnippet = function (ctx) {
         'var isOutro = false;\n' +
         'try {\n' +
         '    var pProg = effect("Progress")(1);\n' +
-        '    if (pProg.numKeys >= 4 && time >= pProg.key(3).time) {\n' +
+        '    if (pProg.velocity < -0.001) {\n' +
         '        isOutro = true;\n' +
-        '    } else if (pLayer && pLayer.marker && pLayer.marker.numKeys > 0) {\n' +
+        '    } else if (pProg.numKeys >= 4 && time >= pProg.key(3).time) {\n' +
+        '        isOutro = true;\n' +
+        '    }\n' +
+        '    if (!isOutro && pLayer && pLayer.marker && pLayer.marker.numKeys > 0) {\n' +
         '        for (var mi = 1; mi <= pLayer.marker.numKeys; mi++) {\n' +
         '            if (pLayer.marker.key(mi).comment === "HL_OUT_START" && time >= pLayer.marker.key(mi).time) {\n' +
         '                isOutro = true; break;\n' +

@@ -66,7 +66,8 @@ $._smartHighlighter.detectTextAnimator = function (textLayer) {
 };
 
 // إنشاء أو تحديث تأثير Typewriter أصلي على طبقة النص مع دعم كامل لحركتي الدخول والخروج (Intro & Outro)
-$._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, styleType, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers) {
+// يدعم نمطين: النمط المتسلسل (Sequential) والنمط المتوازي للأسطر (Parallel Lines) مع ثبات السرعة أو الانتهاء المتزامن
+$._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, styleType, revealUnit, hasOutro, tOutStart, tOutEnd, outroOrder, useMarkers, typewriterMode, speedMode, linesData, totalTextChars, totalWords) {
     try {
         var textProp = textLayer.property("ADBE Text Properties");
         if (!textProp) return false;
@@ -89,149 +90,350 @@ $._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, st
         // 2. إنشاء أنيميتور جديد باسم Typewriter Sync
         var anim = animators.addProperty("ADBE Text Animator");
         anim.name = animName;
-
-        // 3. إضافة المحدّد الأول: حركة الدخول (Range Selector Intro)
         var selectors = anim.property("ADBE Text Selectors");
-        var inSel = selectors.addProperty("ADBE Text Selector");
-        try { inSel.name = "Range Selector Intro"; } catch(eNameIn) {}
 
-        // ضبط إعدادات المحدّد المتقدمة (Advanced): Based On و Smoothness = 0
-        try {
-            var inAdv = inSel.property("ADBE Text Range Advanced");
-            if (inAdv) {
-                // Based On: 1=Chars, 3=Words, 4=Lines
-                try {
-                    var bProp = inAdv.property("ADBE Text Range Type2");
-                    if (bProp) bProp.setValue(unitVal);
-                } catch(eB) {}
-                // Smoothness: 0 لقفزات نصية حاسمة
-                try {
-                    var smProp = inAdv.property("ADBE Text Selector Smoothness");
-                    if (smProp) smProp.setValue(0);
-                } catch(eSm) {}
-            }
-        } catch(eAdvIn) {}
+        var isParallel = (typewriterMode === "parallel" && linesData && linesData.length > 1);
+        var spdMode = speedMode || "constant";
+        var totalIntroDur = Math.max(0.04, tEnd - tStart);
 
-        // ضبط مفاتيح الدخول على المحدّد الأول (Intro)
-        try {
-            var inEndProp = inSel.property("ADBE Text Percent End");
-            if (inEndProp) inEndProp.setValue(100);
-        } catch(eE1) {}
-
-        var inStartProp = null;
-        try { inStartProp = inSel.property("ADBE Text Percent Start"); } catch(eS1) {}
-        if (inStartProp) {
-            inStartProp.setValueAtTime(tStart, 0);
-            inStartProp.setValueAtTime(tEnd, 100);
-            try {
-                inStartProp.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
-                inStartProp.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
-            } catch(eLin1) {}
-
-            if (useMarkers === true) {
-                var inExpr = 
-                    "var res = value;\n" +
-                    "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
-                    "    var inS = null, inE = null;\n" +
-                    "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
-                    "        var c = thisLayer.marker.key(i).comment;\n" +
-                    "        if (c === 'HL_IN_START') inS = thisLayer.marker.key(i).time;\n" +
-                    "        else if (c === 'HL_IN_END') inE = thisLayer.marker.key(i).time;\n" +
-                    "    }\n" +
-                    "    if (inS !== null && inE !== null) res = linear(time, inS, inE, 0, 100);\n" +
-                    "}\n" +
-                    "res;";
-                try { inStartProp.expression = inExpr; } catch(eEx1) {}
-            }
-        }
-
-        // 4. إذا كانت حركة الخروج مفعلة، ننشئ المحدد الثاني (Range Selector Outro)
-        if (hasOutro === true) {
-            if (typeof tOutStart !== "number") tOutStart = tEnd + 1.0;
-            if (typeof tOutEnd !== "number" || tOutEnd <= tOutStart) tOutEnd = tOutStart + Math.max(0.2, tEnd - tStart);
-
-            var outSel = selectors.addProperty("ADBE Text Selector");
-            try { outSel.name = "Range Selector Outro"; } catch(eNameOut) {}
-
-            try {
-                var outAdv = outSel.property("ADBE Text Range Advanced");
-                if (outAdv) {
-                    try {
-                        var obProp = outAdv.property("ADBE Text Range Type2");
-                        if (obProp) obProp.setValue(unitVal);
-                    } catch(eOb) {}
-                    try {
-                        var osmProp = outAdv.property("ADBE Text Selector Smoothness");
-                        if (osmProp) osmProp.setValue(0);
-                    } catch(eOsm) {}
+        if (isParallel) {
+            // ============================================================
+            // النمط المتوازي: إنشاء Range Selectors مخصصة لكل سطر تبدأ معاً بالتوازي
+            // ============================================================
+            var maxUnits = 1;
+            for (var mi = 0; mi < linesData.length; mi++) {
+                var mLine = linesData[mi];
+                var mCount = 1;
+                if (revealUnit === "words") {
+                    mCount = (mLine.wOffsets && mLine.wOffsets.length > 0) ? mLine.wOffsets.length : Math.max(1, (mLine.wordEnd || 0) - (mLine.wordStart || 0));
+                } else {
+                    mCount = Math.max(1, (typeof mLine.charEnd === "number" && typeof mLine.charStart === "number") ? (mLine.charEnd - mLine.charStart) : (mLine.text || "").length);
                 }
-            } catch(eAdvOut) {}
+                if (mCount > maxUnits) maxUnits = mCount;
+            }
 
-            var isReverse = (outroOrder === "last");
-            if (isReverse) {
-                // خروج عكسي N➔1: الحروف الأخيرة تختفي أولاً
+            var totC = (typeof totalTextChars === "number" && totalTextChars > 0) ? totalTextChars : 1;
+            var totW = (typeof totalWords === "number" && totalWords > 0) ? totalWords : 1;
+
+            for (var i = 0; i < linesData.length; i++) {
+                var lineItem = linesData[i];
+                var lineUnits = (revealUnit === "words")
+                    ? ((lineItem.wOffsets && lineItem.wOffsets.length > 0) ? lineItem.wOffsets.length : Math.max(1, (lineItem.wordEnd || 0) - (lineItem.wordStart || 0)))
+                    : Math.max(1, (typeof lineItem.charEnd === "number" && typeof lineItem.charStart === "number") ? (lineItem.charEnd - lineItem.charStart) : (lineItem.text || "").length);
+
+                var lineDur = (spdMode === "synced")
+                    ? totalIntroDur
+                    : Math.max(0.08, (lineUnits / maxUnits) * totalIntroDur);
+
+                var pStart, pEnd;
+                if (revealUnit === "words") {
+                    pStart = (((lineItem.wordStart !== undefined && lineItem.wordStart !== null) ? lineItem.wordStart : 0) / totW) * 100;
+                    pEnd = (i === linesData.length - 1) ? 100 : (((lineItem.wordEnd !== undefined && lineItem.wordEnd !== null) ? lineItem.wordEnd : totW) / totW) * 100;
+                } else {
+                    pStart = (((lineItem.charStart !== undefined && lineItem.charStart !== null) ? lineItem.charStart : 0) / totC) * 100;
+                    pEnd = (i === linesData.length - 1) ? 100 : (((lineItem.charEnd !== undefined && lineItem.charEnd !== null) ? lineItem.charEnd : totC) / totC) * 100;
+                }
+                pStart = Math.max(0, Math.min(100, pStart));
+                pEnd = Math.max(0, Math.min(100, pEnd));
+                if (pEnd <= pStart) pEnd = Math.min(100, pStart + 1);
+
+                // أ. محدد الدخول للسطر (Intro Selector for Line i)
+                var inSelLine = selectors.addProperty("ADBE Text Selector");
+                try { inSelLine.name = "Range Selector Line " + (i + 1); } catch(eNInL) {}
+
                 try {
-                    var oEndP = outSel.property("ADBE Text Percent End");
-                    if (oEndP) oEndP.setValue(100);
-                } catch(eOE) {}
+                    var inAdvL = inSelLine.property("ADBE Text Range Advanced");
+                    if (inAdvL) {
+                        try {
+                            var bPropL = inAdvL.property("ADBE Text Range Type2");
+                            if (bPropL) bPropL.setValue(unitVal);
+                        } catch(eBL) {}
+                        try {
+                            var smPropL = inAdvL.property("ADBE Text Selector Smoothness");
+                            if (smPropL) smPropL.setValue(0);
+                        } catch(eSmL) {}
+                    }
+                } catch(eAdvInL) {}
 
-                var oStartP = null;
-                try { oStartP = outSel.property("ADBE Text Percent Start"); } catch(eOS) {}
-                if (oStartP) {
-                    oStartP.setValueAtTime(tOutStart, 100);
-                    oStartP.setValueAtTime(tOutEnd, 0);
+                try {
+                    var inEndPropL = inSelLine.property("ADBE Text Percent End");
+                    if (!inEndPropL) inEndPropL = inSelLine.property("End");
+                    if (inEndPropL) inEndPropL.setValue(pEnd);
+                } catch(eEL) {}
+
+                var inStartPropL = null;
+                try { inStartPropL = inSelLine.property("ADBE Text Percent Start"); } catch(eSL) {}
+                if (!inStartPropL) { try { inStartPropL = inSelLine.property("Start"); } catch(eSL2) {} }
+                if (inStartPropL) {
+                    inStartPropL.setValueAtTime(tStart, pStart);
+                    inStartPropL.setValueAtTime(tStart + lineDur, pEnd);
                     try {
-                        oStartP.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
-                        oStartP.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
-                    } catch(eLin2) {}
+                        inStartPropL.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                        inStartPropL.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                    } catch(eLinL) {}
 
                     if (useMarkers === true) {
-                        var outRevExpr = 
+                        var inExprPara = 
                             "var res = value;\n" +
                             "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
-                            "    var outS = null, outE = null;\n" +
-                            "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
-                            "        var c = thisLayer.marker.key(i).comment;\n" +
-                            "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(i).time;\n" +
-                            "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(i).time;\n" +
+                            "    var inS = null, inE = null;\n" +
+                            "    for (var k = 1; k <= thisLayer.marker.numKeys; k++) {\n" +
+                            "        var c = thisLayer.marker.key(k).comment;\n" +
+                            "        if (c === 'HL_IN_START') inS = thisLayer.marker.key(k).time;\n" +
+                            "        else if (c === 'HL_IN_END') inE = thisLayer.marker.key(k).time;\n" +
                             "    }\n" +
-                            "    if (outS !== null && outE !== null) res = linear(time, outS, outE, 100, 0);\n" +
+                            "    if (inS !== null && inE !== null) {\n" +
+                            "        var totDur = Math.max(0.01, inE - inS);\n" +
+                            "        var myDur = " + (spdMode === "synced" ? "totDur" : ("Math.max(0.08, (" + (lineUnits / maxUnits).toFixed(4) + ") * totDur)")) + ";\n" +
+                            "        res = linear(time, inS, inS + myDur, " + pStart.toFixed(4) + ", " + pEnd.toFixed(4) + ");\n" +
+                            "    }\n" +
                             "}\n" +
                             "res;";
-                        try { oStartP.expression = outRevExpr; } catch(eExRev) {}
+                        try { inStartPropL.expression = inExprPara; } catch(eExPL) {}
                     }
                 }
-            } else {
-                // خروج طبيعي 1➔N: الحروف الأولى تختفي أولاً
-                try {
-                    var oStartP2 = outSel.property("ADBE Text Percent Start");
-                    if (oStartP2) oStartP2.setValue(0);
-                } catch(eOS2) {}
 
-                var oEndP2 = null;
-                try { oEndP2 = outSel.property("ADBE Text Percent End"); } catch(eOE2) {}
-                if (oEndP2) {
-                    oEndP2.setValueAtTime(tOutStart, 0);
-                    oEndP2.setValueAtTime(tOutEnd, 100);
+                // ب. محدد الخروج للسطر (Outro Selector for Line i)
+                if (hasOutro === true) {
+                    if (typeof tOutStart !== "number") tOutStart = tEnd + 1.0;
+                    var totalOutroDur = (typeof tOutEnd === "number" && tOutEnd > tOutStart) ? (tOutEnd - tOutStart) : totalIntroDur;
+                    var lineOutDur = (spdMode === "synced") ? totalOutroDur : Math.max(0.08, (lineUnits / maxUnits) * totalOutroDur);
+
+                    var outSelLine = selectors.addProperty("ADBE Text Selector");
+                    try { outSelLine.name = "Range Selector Outro Line " + (i + 1); } catch(eNOutL) {}
+
                     try {
-                        oEndP2.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
-                        oEndP2.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
-                    } catch(eLin3) {}
+                        var outAdvL = outSelLine.property("ADBE Text Range Advanced");
+                        if (outAdvL) {
+                            try {
+                                var obPropL = outAdvL.property("ADBE Text Range Type2");
+                                if (obPropL) obPropL.setValue(unitVal);
+                            } catch(eObL) {}
+                            try {
+                                var osmPropL = outAdvL.property("ADBE Text Selector Smoothness");
+                                if (osmPropL) osmPropL.setValue(0);
+                            } catch(eOsmL) {}
+                        }
+                    } catch(eAdvOutL) {}
 
-                    if (useMarkers === true) {
-                        var outFwdExpr = 
-                            "var res = value;\n" +
-                            "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
-                            "    var outS = null, outE = null;\n" +
-                            "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
-                            "        var c = thisLayer.marker.key(i).comment;\n" +
-                            "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(i).time;\n" +
-                            "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(i).time;\n" +
-                            "    }\n" +
-                            "    if (outS !== null && outE !== null) res = linear(time, outS, outE, 0, 100);\n" +
-                            "}\n" +
-                            "res;";
-                        try { oEndP2.expression = outFwdExpr; } catch(eExFwd) {}
+                    var isReverseLine = (outroOrder === "last");
+                    if (isReverseLine) {
+                        try {
+                            var oEndPL = outSelLine.property("ADBE Text Percent End");
+                            if (!oEndPL) oEndPL = outSelLine.property("End");
+                            if (oEndPL) oEndPL.setValue(pEnd);
+                        } catch(eOEL) {}
+
+                        var oStartPL = null;
+                        try { oStartPL = outSelLine.property("ADBE Text Percent Start"); } catch(eOSL) {}
+                        if (!oStartPL) { try { oStartPL = outSelLine.property("Start"); } catch(eOSL11) {} }
+                        if (oStartPL) {
+                            oStartPL.setValueAtTime(tOutStart, pEnd);
+                            oStartPL.setValueAtTime(tOutStart + lineOutDur, pStart);
+                            try {
+                                oStartPL.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                                oStartPL.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                            } catch(eLinOutL1) {}
+
+                            if (useMarkers === true) {
+                                var outRevExprPara = 
+                                    "var res = value;\n" +
+                                    "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                                    "    var outS = null, outE = null;\n" +
+                                    "    for (var k = 1; k <= thisLayer.marker.numKeys; k++) {\n" +
+                                    "        var c = thisLayer.marker.key(k).comment;\n" +
+                                    "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(k).time;\n" +
+                                    "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(k).time;\n" +
+                                    "    }\n" +
+                                    "    if (outS !== null && outE !== null) {\n" +
+                                    "        var oTot = Math.max(0.01, outE - outS);\n" +
+                                    "        var oMyDur = " + (spdMode === "synced" ? "oTot" : ("Math.max(0.08, (" + (lineUnits / maxUnits).toFixed(4) + ") * oTot)")) + ";\n" +
+                                    "        res = linear(time, outS, outS + oMyDur, " + pEnd.toFixed(4) + ", " + pStart.toFixed(4) + ");\n" +
+                                    "    }\n" +
+                                    "}\n" +
+                                    "res;";
+                                try { oStartPL.expression = outRevExprPara; } catch(eExRevPL) {}
+                            }
+                        }
+                    } else {
+                        try {
+                            var oStartPL2 = outSelLine.property("ADBE Text Percent Start");
+                            if (!oStartPL2) oStartPL2 = outSelLine.property("Start");
+                            if (oStartPL2) oStartPL2.setValue(pStart);
+                        } catch(eOSL2) {}
+
+                        var oEndPL2 = null;
+                        try { oEndPL2 = outSelLine.property("ADBE Text Percent End"); } catch(eOEL2) {}
+                        if (!oEndPL2) { try { oEndPL2 = outSelLine.property("End"); } catch(eOEL22) {} }
+                        if (oEndPL2) {
+                            oEndPL2.setValueAtTime(tOutStart, pStart);
+                            oEndPL2.setValueAtTime(tOutStart + lineOutDur, pEnd);
+                            try {
+                                oEndPL2.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                                oEndPL2.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                            } catch(eLinOutL2) {}
+
+                            if (useMarkers === true) {
+                                var outFwdExprPara = 
+                                    "var res = value;\n" +
+                                    "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                                    "    var outS = null, outE = null;\n" +
+                                    "    for (var k = 1; k <= thisLayer.marker.numKeys; k++) {\n" +
+                                    "        var c = thisLayer.marker.key(k).comment;\n" +
+                                    "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(k).time;\n" +
+                                    "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(k).time;\n" +
+                                    "    }\n" +
+                                    "    if (outS !== null && outE !== null) {\n" +
+                                    "        var oTot = Math.max(0.01, outE - outS);\n" +
+                                    "        var oMyDur = " + (spdMode === "synced" ? "oTot" : ("Math.max(0.08, (" + (lineUnits / maxUnits).toFixed(4) + ") * oTot)")) + ";\n" +
+                                    "        res = linear(time, outS, outS + oMyDur, " + pStart.toFixed(4) + ", " + pEnd.toFixed(4) + ");\n" +
+                                    "    }\n" +
+                                    "}\n" +
+                                    "res;";
+                                try { oEndPL2.expression = outFwdExprPara; } catch(eExFwdPL) {}
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // ============================================================
+            // النمط المتسلسل التقليدي: محدد واحد شامل يتدفق من البداية حتى النهاية
+            // ============================================================
+            var inSel = selectors.addProperty("ADBE Text Selector");
+            try { inSel.name = "Range Selector Intro"; } catch(eNameIn) {}
+
+            try {
+                var inAdv = inSel.property("ADBE Text Range Advanced");
+                if (inAdv) {
+                    try {
+                        var bProp = inAdv.property("ADBE Text Range Type2");
+                        if (bProp) bProp.setValue(unitVal);
+                    } catch(eB) {}
+                    try {
+                        var smProp = inAdv.property("ADBE Text Selector Smoothness");
+                        if (smProp) smProp.setValue(0);
+                    } catch(eSm) {}
+                }
+            } catch(eAdvIn) {}
+
+            try {
+                var inEndProp = inSel.property("ADBE Text Percent End");
+                if (inEndProp) inEndProp.setValue(100);
+            } catch(eE1) {}
+
+            var inStartProp = null;
+            try { inStartProp = inSel.property("ADBE Text Percent Start"); } catch(eS1) {}
+            if (inStartProp) {
+                inStartProp.setValueAtTime(tStart, 0);
+                inStartProp.setValueAtTime(tEnd, 100);
+                try {
+                    inStartProp.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                    inStartProp.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                } catch(eLin1) {}
+
+                if (useMarkers === true) {
+                    var inExpr = 
+                        "var res = value;\n" +
+                        "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                        "    var inS = null, inE = null;\n" +
+                        "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
+                        "        var c = thisLayer.marker.key(i).comment;\n" +
+                        "        if (c === 'HL_IN_START') inS = thisLayer.marker.key(i).time;\n" +
+                        "        else if (c === 'HL_IN_END') inE = thisLayer.marker.key(i).time;\n" +
+                        "    }\n" +
+                        "    if (inS !== null && inE !== null) res = linear(time, inS, inE, 0, 100);\n" +
+                        "}\n" +
+                        "res;";
+                    try { inStartProp.expression = inExpr; } catch(eEx1) {}
+                }
+            }
+
+            if (hasOutro === true) {
+                if (typeof tOutStart !== "number") tOutStart = tEnd + 1.0;
+                if (typeof tOutEnd !== "number" || tOutEnd <= tOutStart) tOutEnd = tOutStart + Math.max(0.2, tEnd - tStart);
+
+                var outSel = selectors.addProperty("ADBE Text Selector");
+                try { outSel.name = "Range Selector Outro"; } catch(eNameOut) {}
+
+                try {
+                    var outAdv = outSel.property("ADBE Text Range Advanced");
+                    if (outAdv) {
+                        try {
+                            var obProp = outAdv.property("ADBE Text Range Type2");
+                            if (obProp) obProp.setValue(unitVal);
+                        } catch(eOb) {}
+                        try {
+                            var osmProp = outAdv.property("ADBE Text Selector Smoothness");
+                            if (osmProp) osmProp.setValue(0);
+                        } catch(eOsm) {}
+                    }
+                } catch(eAdvOut) {}
+
+                var isReverse = (outroOrder === "last");
+                if (isReverse) {
+                    try {
+                        var oEndP = outSel.property("ADBE Text Percent End");
+                        if (oEndP) oEndP.setValue(100);
+                    } catch(eOE) {}
+
+                    var oStartP = null;
+                    try { oStartP = outSel.property("ADBE Text Percent Start"); } catch(eOS) {}
+                    if (oStartP) {
+                        oStartP.setValueAtTime(tOutStart, 100);
+                        oStartP.setValueAtTime(tOutEnd, 0);
+                        try {
+                            oStartP.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                            oStartP.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                        } catch(eLin2) {}
+
+                        if (useMarkers === true) {
+                            var outRevExpr = 
+                                "var res = value;\n" +
+                                "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                                "    var outS = null, outE = null;\n" +
+                                "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
+                                "        var c = thisLayer.marker.key(i).comment;\n" +
+                                "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(i).time;\n" +
+                                "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(i).time;\n" +
+                                "    }\n" +
+                                "    if (outS !== null && outE !== null) res = linear(time, outS, outE, 100, 0);\n" +
+                                "}\n" +
+                                "res;";
+                            try { oStartP.expression = outRevExpr; } catch(eExRev) {}
+                        }
+                    }
+                } else {
+                    try {
+                        var oStartP2 = outSel.property("ADBE Text Percent Start");
+                        if (oStartP2) oStartP2.setValue(0);
+                    } catch(eOS2) {}
+
+                    var oEndP2 = null;
+                    try { oEndP2 = outSel.property("ADBE Text Percent End"); } catch(eOE2) {}
+                    if (oEndP2) {
+                        oEndP2.setValueAtTime(tOutStart, 0);
+                        oEndP2.setValueAtTime(tOutEnd, 100);
+                        try {
+                            oEndP2.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR);
+                            oEndP2.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR);
+                        } catch(eLin3) {}
+
+                        if (useMarkers === true) {
+                            var outFwdExpr = 
+                                "var res = value;\n" +
+                                "if (thisLayer.marker && thisLayer.marker.numKeys > 0) {\n" +
+                                "    var outS = null, outE = null;\n" +
+                                "    for (var i = 1; i <= thisLayer.marker.numKeys; i++) {\n" +
+                                "        var c = thisLayer.marker.key(i).comment;\n" +
+                                "        if (c === 'HL_OUT_START') outS = thisLayer.marker.key(i).time;\n" +
+                                "        else if (c === 'HL_OUT_END') outE = thisLayer.marker.key(i).time;\n" +
+                                "    }\n" +
+                                "    if (outS !== null && outE !== null) res = linear(time, outS, outE, 0, 100);\n" +
+                                "}\n" +
+                                "res;";
+                            try { oEndP2.expression = outFwdExpr; } catch(eExFwd) {}
+                        }
                     }
                 }
             }
@@ -254,7 +456,7 @@ $._smartHighlighter.ensureTextTypewriter = function (textLayer, tStart, tEnd, st
             } catch (eSc) {}
         }
 
-        $._smartHighlighter.log("ensureTextTypewriter: successfully built Typewriter Sync with selectors and opacity.");
+        $._smartHighlighter.log("ensureTextTypewriter: successfully built Typewriter Sync (" + (isParallel ? "Parallel" : "Sequential") + ") with selectors and opacity.");
         return true;
     } catch (e) {
         $._smartHighlighter.log("ensureTextTypewriter error: " + e.toString());

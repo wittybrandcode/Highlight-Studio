@@ -353,8 +353,74 @@
                 HS.DOM.motionSelect.dispatchEvent(new Event("change", { bubbles: true }));
             }
             HS.Controls.syncMotionButtons();
+            HS.Controls.syncTypewriterButtons();
             if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
                 HS.Actions.executeSmartAction(false);
+            }
+        },
+
+        setTypewriterMode: function (mode) {
+            HS.markInteraction();
+            HS.State.typewriterMode = mode;
+            if (HS.DOM && HS.DOM.sequentialCheck) {
+                HS.DOM.sequentialCheck.checked = (mode === "sequential");
+            }
+            if (HS.DOM && HS.DOM.motionSelect) {
+                HS.DOM.motionSelect.value = "typewriter";
+            }
+            HS.Controls.syncTypewriterButtons();
+            var modeLabel = (mode === "sequential") ? "Sequential (تتابع الأسطر)" : "Parallel Lines (بدء الأسطر بالتوازي)";
+            HS.setStatus("Typewriter Mode: " + modeLabel);
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                HS.Actions.executeSmartAction(false);
+            }
+        },
+
+        toggleTypewriterSpeedMode: function () {
+            HS.markInteraction();
+            var cur = HS.State.typewriterSpeedMode || "constant";
+            var next = (cur === "constant") ? "synced" : "constant";
+            HS.State.typewriterSpeedMode = next;
+            // إذا كان المستخدم في النمط المتسلسل وضغط زر السرعة، نحوله تلقائياً للمتوازي ليرى النتيجة
+            if (HS.State.typewriterMode === "sequential") {
+                HS.State.typewriterMode = "parallel";
+                if (HS.DOM && HS.DOM.sequentialCheck) {
+                    HS.DOM.sequentialCheck.checked = false;
+                }
+            }
+            HS.Controls.syncTypewriterButtons();
+            var speedLabel = (next === "synced") ? "Synchronized Finish (انتهاء متزامن)" : "Constant Speed (ثبات سرعة الكلمات)";
+            HS.setStatus("Typewriter Speed: " + speedLabel);
+            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                HS.Actions.executeSmartAction(false);
+            }
+        },
+
+        syncTypewriterButtons: function () {
+            var mode = HS.State.typewriterMode || "sequential";
+            var speed = HS.State.typewriterSpeedMode || "constant";
+
+            if (HS.DOM && HS.DOM.btnTypewriterSeq) {
+                HS.DOM.btnTypewriterSeq.classList.toggle("active", mode === "sequential");
+            }
+            if (HS.DOM && HS.DOM.btnTypewriterPara) {
+                HS.DOM.btnTypewriterPara.classList.toggle("active", mode === "parallel");
+            }
+            if (HS.DOM && HS.DOM.btnTypewriterSpeedToggle) {
+                var btn = HS.DOM.btnTypewriterSpeedToggle;
+                var isSynced = (speed === "synced");
+                btn.classList.toggle("mode-synced", isSynced);
+                btn.classList.toggle("mode-constant", !isSynced);
+                btn.classList.toggle("active", isSynced);
+                btn.dataset.speedMode = speed;
+                btn.title = isSynced
+                    ? "Synchronized Finish: All lines complete typing simultaneously (انتهاء متزامن لكافة الأسطر)"
+                    : "Constant Word Speed: Slower/Longer lines finish naturally (ثبات سرعة الكلمات)";
+            }
+            var fieldRev = document.getElementById("field-reveal-unit");
+            if (fieldRev) {
+                fieldRev.style.opacity = "1";
+                fieldRev.style.pointerEvents = "auto";
             }
         },
 
@@ -363,6 +429,7 @@
             document.querySelectorAll(".motion-btn").forEach(function (b) {
                 b.classList.toggle("active", b.dataset.motion === cur);
             });
+            HS.Controls.syncTypewriterButtons();
             var isTypewriter = (cur === "typewriter");
             var fieldRev = document.getElementById("field-reveal-unit");
             if (fieldRev) {
@@ -510,6 +577,21 @@
                 });
             });
 
+            // Typewriter Mode Buttons Click Listeners (Sequential vs Parallel)
+            document.querySelectorAll(".typewriter-mode-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var mode = this.dataset.typewriterMode;
+                    if (mode) HS.Controls.setTypewriterMode(mode);
+                });
+            });
+
+            // Typewriter Speed Toggle Button Click Listener
+            if (HS.DOM.btnTypewriterSpeedToggle) {
+                HS.DOM.btnTypewriterSpeedToggle.addEventListener("click", function () {
+                    HS.Controls.toggleTypewriterSpeedMode();
+                });
+            }
+
             // Reveal Unit Buttons Click Listeners (Tab 1)
             document.querySelectorAll(".reveal-btn").forEach(function (btn) {
                 btn.addEventListener("click", function () {
@@ -546,6 +628,7 @@
             HS.Controls.syncShapeButtons();
             HS.Controls.syncDirectionButtons();
             HS.Controls.syncMotionButtons();
+            HS.Controls.syncTypewriterButtons();
             HS.Controls.syncRevealButtons();
             HS.Controls.syncOutroDirectionUI();
             HS.Controls.syncPhraseShapeButtons();

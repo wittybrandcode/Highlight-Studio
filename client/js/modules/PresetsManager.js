@@ -38,6 +38,8 @@
                 dur: (typeof raw.dur === "number") ? raw.dur : 0.35,
                 stagger: (typeof raw.stagger === "number") ? raw.stagger : 0,
                 sequential: (typeof raw.sequential === "boolean") ? raw.sequential : true,
+                typewriterMode: (raw.typewriterMode === "parallel" || raw.sequential === false) ? "parallel" : "sequential",
+                typewriterSpeedMode: (raw.typewriterSpeedMode === "synced") ? "synced" : "constant",
                 outro: (typeof raw.outro === "boolean") ? raw.outro : false,
                 outTime: (typeof raw.outTime === "number") ? raw.outTime : 1.2
             };
@@ -267,8 +269,16 @@
             if (p.style && HS.DOM.styleSelect) HS.DOM.styleSelect.value = p.style;
             if (p.motion && HS.DOM.motionSelect) HS.DOM.motionSelect.value = p.motion;
             if (p.revealUnit && HS.DOM.revealUnitSelect) HS.DOM.revealUnitSelect.value = p.revealUnit;
-            if (HS.DOM.sequentialCheck && typeof p.sequential === "boolean") {
-                HS.DOM.sequentialCheck.checked = p.sequential;
+            if (p.typewriterMode) {
+                HS.State.typewriterMode = p.typewriterMode;
+            } else if (typeof p.sequential === "boolean") {
+                HS.State.typewriterMode = p.sequential ? "sequential" : "parallel";
+            }
+            if (p.typewriterSpeedMode) {
+                HS.State.typewriterSpeedMode = p.typewriterSpeedMode;
+            }
+            if (HS.DOM.sequentialCheck) {
+                HS.DOM.sequentialCheck.checked = (HS.State.typewriterMode === "sequential");
             }
             if (HS.DOM.outroCheck && typeof p.outro === "boolean") {
                 HS.DOM.outroCheck.checked = p.outro;
@@ -292,6 +302,7 @@
             if (HS.Controls && HS.Controls.syncShapeButtons) HS.Controls.syncShapeButtons();
             if (HS.Controls && HS.Controls.syncDirectionButtons) HS.Controls.syncDirectionButtons();
             if (HS.Controls && HS.Controls.syncMotionButtons) HS.Controls.syncMotionButtons();
+            if (HS.Controls && HS.Controls.syncTypewriterButtons) HS.Controls.syncTypewriterButtons();
             if (HS.Controls && HS.Controls.syncRevealButtons) HS.Controls.syncRevealButtons();
             if (HS.Controls && HS.Controls.updateColorIndicator && p.color) HS.Controls.updateColorIndicator(p.color);
             if (p.color && HS.Controls && HS.Controls.applyLiveColor) HS.Controls.applyLiveColor(p.color);
@@ -331,6 +342,8 @@
                 dur: dur,
                 stagger: stag,
                 sequential: seq,
+                typewriterMode: HS.State.typewriterMode || (seq ? "sequential" : "parallel"),
+                typewriterSpeedMode: HS.State.typewriterSpeedMode || "constant",
                 outro: out,
                 outTime: outT,
                 textOutroOrder: HS.State.textOutroOrder || "first",

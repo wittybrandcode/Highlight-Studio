@@ -48,6 +48,9 @@
             this.animCheck = document.getElementById("anim-check");
             this.animControls = document.getElementById("anim-controls");
             this.motionSelect = document.getElementById("motion-select");
+            this.btnTypewriterSeq = document.getElementById("btn-typewriter-seq");
+            this.btnTypewriterPara = document.getElementById("btn-typewriter-para");
+            this.btnTypewriterSpeedToggle = document.getElementById("btn-typewriter-speed-toggle");
             this.revealUnitSelect = document.getElementById("reveal-unit-select");
             this.timeInPoint = document.getElementById("time-in-point");
             this.timeOutPoint = document.getElementById("time-out-point");

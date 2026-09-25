@@ -2,15 +2,15 @@
   <img src="assets/hero_banner.jpg" alt="Highlight Studio — Professional Text Highlighting for Adobe After Effects" width="100%" />
 </p>
 
-<h1 align="center">Highlight Studio v1.0.0</h1>
+<h1 align="center">Highlight Studio v1.1.0</h1>
 
 <p align="center">
   <strong>The Ultimate Industrial Text Highlighting & Caption Motion Suite for Adobe After Effects</strong><br/>
-  <sub>Interactive word tokens selection, cumulative multi-color phrase highlights, Hormozi elastic spring dynamics, Vox speed-ramp wipes, and zero-distortion invisible anchors.</sub>
+  <sub>Interactive word tokens selection, cumulative multi-color phrase highlights, parallel typewriter suite, Hormozi elastic dynamics, Vox speed-ramp wipes, and zero-distortion invisible anchors.</sub>
 </p>
 
 <p align="center">
-  <a href="#-quick-start"><img src="https://img.shields.io/badge/Release-v1.0.0-FFE600?style=for-the-badge&logoColor=black" alt="Release v1.0.0"/></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/Release-v1.1.0-FFE600?style=for-the-badge&logoColor=black" alt="Release v1.1.0"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-0D99FF?style=for-the-badge" alt="License: MIT"/></a>
   <a href="#-compatibility"><img src="https://img.shields.io/badge/After_Effects-CC_2017_--_2026+-9999FF?style=for-the-badge&logo=adobeaftereffects&logoColor=white" alt="AE Compatibility"/></a>
   <a href="#"><img src="https://img.shields.io/badge/CEP-Panel_7.0+-2ECC71?style=for-the-badge" alt="CEP Panel"/></a>
@@ -59,13 +59,18 @@ Highlighting subtitles, kinetic typography, and documentary quotes in Adobe Afte
 - **Live Token Metrics**: Instant counter badges for selected word count and character count.
 - **Resizable Tokens Workspace**: Integrated vertical grip handle to drag and expand the tokens board for lengthy paragraphs.
 
-### 🎢 2. Physics-Based Motion Dynamics
+### ⌨️ 2. Advanced Typewriter Motion Suite
+- **Sequential Line Cascading (`sequential`)**: Classic stepped line-by-line typewriter flow where each line starts only after the previous one completes.
+- **Parallel Concurrent Lines (`parallel`)**: All lines animate simultaneously in parallel, ideal for fast captions, lower thirds, and punchy quote reveals.
+- **Constant Word Speed (`constant`)**: Realistic reading pace where all words animate at equal speeds—naturally shorter lines finish typing earlier.
+- **Synchronized Line Finish (`synced`)**: Every line completes typing at the exact same instant regardless of length, creating a crisp, synchronized arrival.
+
+### 🎢 3. Physics-Based Motion Dynamics
 - **Hormozi Elastic Overshoot (`pop`)**: Mathematically continuous ($C^0/C^1$) harmonic damped spring bounce ($decay = 7.5, freq = 4.2, amp = 18.0$) that settles cleanly to 100% with zero frame popping.
 - **Vox Speed-Ramp (`wipe`)**: Punchy 25% attack followed by silky 80% cinematic deceleration inspired by modern investigative video journalism.
-- **Typewriter Sync (`typewriter`)**: Proportional character-by-character progression synchronized with the text layer's Range Selector animator.
 - **Snap Jump (`snap`)**: 0-frame instantaneous jump cut for high-energy social reels and TikTok captioning.
 
-### ⏱️ 3. Line Sequencing & Outro Timing
+### ⏱️ 4. Line Sequencing & Outro Timing
 - **Sequential Delay (`stagger`)**: Configurable gap timing between lines for cascading reveal animations.
 - **Dedicated Outro Animation**: Full exit transitions with reverse or forward order toggling (`1➔N` vs `N➔1`).
 - **Hold Duration**: Precise hold timer before phrase auto-dismissal.

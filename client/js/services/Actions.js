@@ -10,7 +10,9 @@
 
     HS.Actions = {
         getPayload: function () {
-            var isSequential = (HS.DOM && HS.DOM.sequentialCheck) ? !!HS.DOM.sequentialCheck.checked : true;
+            var currentTypewriterMode = HS.State.typewriterMode || "sequential";
+            var currentTypewriterSpeedMode = HS.State.typewriterSpeedMode || "constant";
+            var isSequential = (currentTypewriterMode === "sequential");
             var isOutro = (HS.DOM && HS.DOM.outroCheck) ? !!HS.DOM.outroCheck.checked : true;
             var currentMotion = (HS.DOM && HS.DOM.motionSelect) ? HS.DOM.motionSelect.value : "typewriter";
             var currentRevealUnit = (HS.DOM && HS.DOM.revealUnitSelect) ? HS.DOM.revealUnitSelect.value : "chars";
@@ -20,6 +22,8 @@
                 mode: "lines",
                 style: (HS.DOM && HS.DOM.styleSelect) ? HS.DOM.styleSelect.value : "box",
                 motion: currentMotion,
+                typewriterMode: currentTypewriterMode,
+                typewriterSpeedMode: currentTypewriterSpeedMode,
                 revealUnit: currentRevealUnit,
                 syncMarkers: (HS.DOM && HS.DOM.markerSyncCheck) ? HS.DOM.markerSyncCheck.checked : false,
                 color: (HS.DOM && HS.DOM.colorPicker) ? HS.Bridge.hexToRgba(HS.DOM.colorPicker.value) : [1, 0.9, 0, 1],
@@ -189,13 +193,16 @@
             if (typeof cfg.syncOutro === "boolean") HS.State.syncOutro = cfg.syncOutro;
             if (cfg.textOutroOrder) HS.State.textOutroOrder = cfg.textOutroOrder;
             if (cfg.boxOutroOrder) HS.State.boxOutroOrder = cfg.boxOutroOrder;
-            if (cfg.outroOrder && !cfg.textOutroOrder) HS.State.textOutroOrder = cfg.outroOrder;
+            if (cfg.typewriterMode) HS.State.typewriterMode = cfg.typewriterMode;
+            if (cfg.typewriterSpeedMode) HS.State.typewriterSpeedMode = cfg.typewriterSpeedMode;
+            if (HS.DOM && HS.DOM.sequentialCheck) HS.DOM.sequentialCheck.checked = (HS.State.typewriterMode === "sequential");
             if (HS.Controls && HS.Controls.syncOutroDirectionUI) HS.Controls.syncOutroDirectionUI();
             if (HS.DOM && HS.DOM.markerSyncCheck && typeof cfg.syncMarkers === "boolean") HS.DOM.markerSyncCheck.checked = cfg.syncMarkers;
             if (HS.Controls && HS.Controls.syncChipClasses) HS.Controls.syncChipClasses();
             if (HS.Controls && HS.Controls.syncShapeButtons) HS.Controls.syncShapeButtons();
             if (HS.Controls && HS.Controls.syncDirectionButtons) HS.Controls.syncDirectionButtons();
             if (HS.Controls && HS.Controls.syncMotionButtons) HS.Controls.syncMotionButtons();
+            if (HS.Controls && HS.Controls.syncTypewriterButtons) HS.Controls.syncTypewriterButtons();
             if (HS.Controls && HS.Controls.syncRevealButtons) HS.Controls.syncRevealButtons();
             if (HS.Controls && HS.Controls.updateColorIndicator && cfg.color) HS.Controls.updateColorIndicator(cfg.color);
         },

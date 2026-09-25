@@ -276,6 +276,32 @@ body.is-scrubbing {
     stroke: #e88894 !important;
 }
 
+/* Typewriter Speed Toggle Button (Dual Mode: Constant Speed vs Synced Finish) */
+.typewriter-speed-btn.mode-synced {
+    background: #d4d4e2 !important;
+    border-color: #d4d4e2 !important;
+    color: #161620 !important;
+}
+.typewriter-speed-btn.mode-synced:hover {
+    background: #e0e0ec !important;
+    border-color: #e0e0ec !important;
+    color: #121218 !important;
+}
+.typewriter-speed-btn.mode-synced .icon-constant {
+    display: none !important;
+}
+.typewriter-speed-btn.mode-synced .icon-synced {
+    display: inline-block !important;
+    color: #161620 !important;
+    stroke: #161620 !important;
+}
+.typewriter-speed-btn.mode-constant .icon-constant {
+    display: inline-block !important;
+}
+.typewriter-speed-btn.mode-constant .icon-synced {
+    display: none !important;
+}
+
 /* Preset Dropdown Wrap in Compact Top Bar */
 /* ============================================================
    CUSTOM PRESET DROPDOWN (Zero Rounded Corners, Pure Industrial Dark Theme)

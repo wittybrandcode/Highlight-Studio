@@ -190,24 +190,46 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
 
         var textOutroOrder = data.textOutroOrder || data.outroOrder || "first";
         var boxOutroOrder = (data.syncOutro !== false) ? textOutroOrder : (data.boxOutroOrder || textOutroOrder);
+        var hasOutro = !!data.animate && (!!data.outro || (hasTimingMarkers && timingMarkers.outStart !== null && timingMarkers.outEnd !== null));
+
+        var typewriterMode = data.typewriterMode || (data.sequential ? "sequential" : "parallel") || "sequential";
+        var typewriterSpeedMode = data.typewriterSpeedMode || "constant";
+        var isParallel = (typewriterMode === "parallel" && (totalBoxes > 1 || (scan && scan.numLines > 1)));
 
         if (motionRecipe && motionRecipe.isTypewriter) {
             var animStyle = (data.typewriterStyle === "pop" || data.typewriterPop === true || motion === "pop") ? "scale" : "opacity";
             var useMarkers = !!hasTimingMarkers;
             if (motionRecipe.setupTextAnimator) {
-                motionRecipe.setupTextAnimator(textLayer, typeStartTime, typeTotalDur, animStyle, revealUnit, hasTextOutro, textOutStart, textOutEnd, textOutroOrder, useMarkers);
+                motionRecipe.setupTextAnimator(textLayer, typeStartTime, typeStartTime + typeTotalDur, animStyle, revealUnit, hasTextOutro, textOutStart, textOutEnd, textOutroOrder, useMarkers, typewriterMode, typewriterSpeedMode, (scan ? scan.linesData : null), totalTextChars, totalWords);
             } else {
-                $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, animStyle, revealUnit, hasTextOutro, textOutStart, textOutEnd, textOutroOrder, useMarkers);
+                $._smartHighlighter.ensureTextTypewriter(textLayer, typeStartTime, typeStartTime + typeTotalDur, animStyle, revealUnit, hasTextOutro, textOutStart, textOutEnd, textOutroOrder, useMarkers, typewriterMode, typewriterSpeedMode, (scan ? scan.linesData : null), totalTextChars, totalWords);
             }
-            $._smartHighlighter.log("Typewriter: setup Text Animator with Intro & Outro (" + typeTotalDur.toFixed(2) + "s in, hasOutro=" + hasTextOutro + ", outStart=" + textOutStart + ", textOrder=" + textOutroOrder + ", boxOrder=" + boxOutroOrder + ", useMarkers=" + useMarkers + ")");
+            $._smartHighlighter.log("Typewriter: setup Text Animator (" + typewriterMode + ", " + typewriterSpeedMode + ") with Intro & Outro (" + typeTotalDur.toFixed(2) + "s in, hasOutro=" + hasTextOutro + ", outStart=" + textOutStart + ", textOrder=" + textOutroOrder + ", boxOrder=" + boxOutroOrder + ", useMarkers=" + useMarkers + ")");
         } else {
             // إزالة أنيميتور الآلة الكاتبة إذا تم التحويل لحركة أخرى حتى لا يظل النص مخفياً بـ Opacity = 0
             $._smartHighlighter.removeTextTypewriter(textLayer);
         }
 
         var typeBoxTimings = [];
+        var maxUnitsInLine = 1;
+        if (isParallel && typewriterSpeedMode === "constant") {
+            for (var mb = 0; mb < totalBoxes; mb++) {
+                var mbData = boxesData[mb];
+                var uCount = 1;
+                if (revealUnit === "words") {
+                    uCount = (typeof mbData.wordEnd === "number" && typeof mbData.wordStart === "number") ? Math.max(1, mbData.wordEnd - mbData.wordStart) : 1;
+                } else {
+                    var mcs = (typeof mbData.anchorStart === "number") ? mbData.anchorStart : ((typeof mbData.charStart === "number") ? mbData.charStart : 0);
+                    var mce = (typeof mbData.anchorEnd === "number") ? mbData.anchorEnd : ((typeof mbData.charEnd === "number") ? mbData.charEnd : (mcs + Math.max(1, (mbData.text || "").length)));
+                    uCount = Math.max(1, mce - mcs);
+                }
+                if (uCount > maxUnitsInLine) maxUnitsInLine = uCount;
+            }
+        }
+
         for (var tb = 0; tb < totalBoxes; tb++) {
             var bData = boxesData[tb];
+            var bStart, bEnd, bDur;
             var cStartPct = 0;
             var cEndPct = 100;
 
@@ -225,14 +247,33 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                 cEndPct = (cEnd / totalTextChars) * 100;
             }
 
-            var bStart = typeStartTime + (cStartPct / 100) * typeTotalDur;
-            var bEnd = typeStartTime + (cEndPct / 100) * typeTotalDur;
-            if (bEnd <= bStart) bEnd = bStart + 0.04;
+            if (isParallel) {
+                bStart = typeStartTime;
+                if (typewriterSpeedMode === "synced") {
+                    bDur = typeTotalDur;
+                } else {
+                    var uCnt = 1;
+                    if (revealUnit === "words") {
+                        uCnt = (typeof bData.wordEnd === "number" && typeof bData.wordStart === "number") ? Math.max(1, bData.wordEnd - bData.wordStart) : 1;
+                    } else {
+                        var cs = (typeof bData.anchorStart === "number") ? bData.anchorStart : ((typeof bData.charStart === "number") ? bData.charStart : 0);
+                        var ce = (typeof bData.anchorEnd === "number") ? bData.anchorEnd : ((typeof bData.charEnd === "number") ? bData.charEnd : (cs + Math.max(1, (bData.text || "").length)));
+                        uCnt = Math.max(1, ce - cs);
+                    }
+                    bDur = Math.max(0.08, (uCnt / maxUnitsInLine) * typeTotalDur);
+                }
+                bEnd = bStart + bDur;
+            } else {
+                bStart = typeStartTime + (cStartPct / 100) * typeTotalDur;
+                bEnd = typeStartTime + (cEndPct / 100) * typeTotalDur;
+                if (bEnd <= bStart) bEnd = bStart + 0.04;
+                bDur = (bEnd - bStart);
+            }
 
             typeBoxTimings.push({
                 start: bStart,
                 end: bEnd,
-                dur: (bEnd - bStart),
+                dur: bDur,
                 cStartPct: cStartPct,
                 cEndPct: cEndPct,
                 revealUnit: revealUnit,
@@ -345,15 +386,22 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                     ? motionRecipe.lineDur
                     : ((motion === "snap") ? 0.04 : ((data.lineDuration && data.lineDuration > 0) ? data.lineDuration : 0.35));
                 var gapOrStagger = (typeof data.stagger === "number" && !isNaN(data.stagger)) ? data.stagger : 0;
-                var hasOutro = !!data.outro;
                 var holdTime = (typeof data.outTime === "number" && data.outTime > 0) ? data.outTime : 1.5;
+                var boxDurFrac = (typeBoxTimings && typeBoxTimings[k] && typeTotalDur > 0) ? (typeBoxTimings[k].dur / typeTotalDur) : 1.0;
                 var t1, t2;
 
                 if (hasTimingMarkers && motionRecipe && motionRecipe.isTypewriter) {
                     // التوقيت التناسبي الدقيق للحروف عبر نافذة الماركرز
                     var typeMarkerDur = Math.max(0.04, timingMarkers.inEnd - timingMarkers.inStart);
-                    t1 = timingMarkers.inStart + ((typeBoxTimings[k].cStartPct / 100) * typeMarkerDur);
-                    t2 = timingMarkers.inStart + ((typeBoxTimings[k].cEndPct / 100) * typeMarkerDur);
+                    if (isParallel) {
+                        t1 = timingMarkers.inStart;
+                        t2 = (typewriterSpeedMode === "synced")
+                            ? timingMarkers.inEnd
+                            : (timingMarkers.inStart + Math.max(0.08, typeMarkerDur * boxDurFrac));
+                    } else {
+                        t1 = timingMarkers.inStart + ((typeBoxTimings[k].cStartPct / 100) * typeMarkerDur);
+                        t2 = timingMarkers.inStart + ((typeBoxTimings[k].cEndPct / 100) * typeMarkerDur);
+                    }
                     if (t2 <= t1) t2 = t1 + 0.04;
                     if (timingMarkers.outStart !== null && timingMarkers.outEnd !== null) {
                         hasOutro = true;
@@ -413,9 +461,15 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                         "    }\n" +
                         "    if (inS !== null && inE !== null) {\n" +
                         (isType ? (
-                        "        var inDur = Math.max(0.01, inE - inS);\n" +
-                        "        var startT = inS + (" + rS.toFixed(4) + " * inDur);\n" +
-                        "        var endT = inS + (" + rE.toFixed(4) + " * inDur);\n"
+                            isParallel ? (
+                            "        var inDur = Math.max(0.01, inE - inS);\n" +
+                            "        var startT = inS;\n" +
+                            "        var endT = inS + (" + (typewriterSpeedMode === "synced" ? "inDur" : ("Math.max(0.08, inDur * " + boxDurFrac.toFixed(4) + ")")) + ");\n"
+                            ) : (
+                            "        var inDur = Math.max(0.01, inE - inS);\n" +
+                            "        var startT = inS + (" + rS.toFixed(4) + " * inDur);\n" +
+                            "        var endT = inS + (" + rE.toFixed(4) + " * inDur);\n"
+                            )
                         ) : (
                         "        var delay = " + (k * gapOrStagger) + ";\n" +
                         "        var startT = inS + delay;\n" +
@@ -424,14 +478,19 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                         "        var cur = time;\n" +
                         "        if (outS !== null && outE !== null) {\n" +
                         (isType ? (
-                        "            var outDur = Math.max(0.01, outE - outS);\n" +
-                        (outOrder === "last" ? (
-                        "            var oStartT = outS + ((1 - " + rE.toFixed(4) + ") * outDur);\n" +
-                        "            var oEndT = outS + ((1 - " + rS.toFixed(4) + ") * outDur);\n"
-                        ) : (
-                        "            var oStartT = outS + (" + rS.toFixed(4) + " * outDur);\n" +
-                        "            var oEndT = outS + (" + rE.toFixed(4) + " * outDur);\n"
-                        ))
+                            isParallel ? (
+                            "            var outDur = Math.max(0.01, outE - outS);\n" +
+                            "            var oStartT = outS;\n" +
+                            "            var oEndT = outS + (" + (typewriterSpeedMode === "synced" ? "outDur" : ("Math.max(0.08, outDur * " + boxDurFrac.toFixed(4) + ")")) + ");\n"
+                            ) : (
+                            (outOrder === "last" ? (
+                            "            var oStartT = outS + ((1 - " + rE.toFixed(4) + ") * outDur);\n" +
+                            "            var oEndT = outS + ((1 - " + rS.toFixed(4) + ") * outDur);\n"
+                            ) : (
+                            "            var oStartT = outS + (" + rS.toFixed(4) + " * outDur);\n" +
+                            "            var oEndT = outS + (" + rE.toFixed(4) + " * outDur);\n"
+                            ))
+                            )
                         ) : (
                         "            var exitDelay = " + (exitK * gapOrStagger) + ";\n" +
                         "            var oStartT = outS + exitDelay;\n" +
@@ -479,15 +538,22 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                             ? textOutStart
                             : ((typeBoxTimings.length > 0 ? typeBoxTimings[typeBoxTimings.length - 1].end : (startTime + typeTotalDur)) + holdTime);
 
-                        var rS = (typeBoxTimings && typeBoxTimings[k]) ? (typeBoxTimings[k].cStartPct / 100) : 0;
-                        var rE = (typeBoxTimings && typeBoxTimings[k]) ? (typeBoxTimings[k].cEndPct / 100) : 1;
-
-                        if (outroOrder === "last") {
-                            t3 = baseOutStart + ((1 - rE) * totalOutroDur);
-                            t4 = baseOutStart + ((1 - rS) * totalOutroDur);
+                        if (isParallel) {
+                            // في النمط المتوازي: كافة الصناديق تبدأ الخروج معاً بالتوازي عند baseOutStart
+                            t3 = baseOutStart;
+                            var boxOutDur = (typewriterSpeedMode === "synced") ? totalOutroDur : Math.max(0.08, totalOutroDur * boxDurFrac);
+                            t4 = baseOutStart + boxOutDur;
                         } else {
-                            t3 = baseOutStart + (rS * totalOutroDur);
-                            t4 = baseOutStart + (rE * totalOutroDur);
+                            var rS = (typeBoxTimings && typeBoxTimings[k]) ? (typeBoxTimings[k].cStartPct / 100) : 0;
+                            var rE = (typeBoxTimings && typeBoxTimings[k]) ? (typeBoxTimings[k].cEndPct / 100) : 1;
+
+                            if (outroOrder === "last") {
+                                t3 = baseOutStart + ((1 - rE) * totalOutroDur);
+                                t4 = baseOutStart + ((1 - rS) * totalOutroDur);
+                            } else {
+                                t3 = baseOutStart + (rS * totalOutroDur);
+                                t4 = baseOutStart + (rE * totalOutroDur);
+                            }
                         }
                     } else if (hasTimingMarkers && timingMarkers.outStart !== null && timingMarkers.outEnd !== null) {
                         t3 = timingMarkers.outStart + (exitIndex * gapOrStagger);
