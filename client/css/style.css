@@ -1229,7 +1229,6 @@ label {
 .timing-matrix-box.segmented-box {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     height: 28px;
     padding: 0 2px 0 4px;
     background: var(--bg-input);
@@ -1249,7 +1248,9 @@ label {
 }
 
 .timing-matrix-box.segmented-box .scrub-label {
-    font-size: 8px;
+    flex: 0 0 46px;
+    width: 46px;
+    font-size: 7.5px;
     font-weight: 800;
     letter-spacing: -0.2px;
     color: var(--text-secondary);
@@ -1259,29 +1260,32 @@ label {
     white-space: nowrap;
     cursor: ew-resize;
     user-select: none;
-    flex-shrink: 0;
-    padding-right: 2px;
+    overflow: hidden;
 }
 
 .timing-matrix-box.segmented-box .scrub-label svg {
     flex-shrink: 0;
-    width: 8px;
-    height: 8px;
+    width: 7.5px;
+    height: 7.5px;
 }
 
 .time-segmented-cluster {
     display: flex;
     align-items: center;
+    flex: 1;
+    min-width: 0;
     gap: 0;
-    flex-shrink: 0;
+    height: 20px;
 }
 
 .time-seg-group {
+    flex: 1;
+    min-width: 0;
     display: inline-flex;
     align-items: center;
     background: #171720;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    height: 19px;
+    height: 100%;
     padding: 0;
     transition: border-color var(--transition-fast), background var(--transition-fast);
 }
@@ -1292,13 +1296,15 @@ label {
 }
 
 .time-seg-input {
-    width: 13px;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
     height: 100%;
     background: transparent;
     border: none;
     outline: none;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 700;
     color: var(--text-bright);
     text-align: center;
@@ -1321,10 +1327,11 @@ label {
 .time-seg-arrows {
     display: flex;
     flex-direction: column;
-    width: 8px;
+    width: 8.5px;
     height: 100%;
     border-left: 1px solid rgba(255, 255, 255, 0.08);
     background: #131318;
+    flex-shrink: 0;
 }
 
 .time-seg-btn {
@@ -1336,7 +1343,7 @@ label {
     border: none;
     outline: none;
     cursor: pointer;
-    font-size: 4.5px;
+    font-size: 4px;
     line-height: 1;
     color: var(--text-secondary);
     padding: 0;
@@ -1356,11 +1363,12 @@ label {
 
 .time-seg-colon {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 8.5px;
+    font-size: 8px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.25);
     margin: 0 0.5px;
     user-select: none;
+    flex-shrink: 0;
 }
 
 /* Outro Direction Bar (Dual Exit with Master Sync Link) */
