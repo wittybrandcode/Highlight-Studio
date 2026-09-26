@@ -1230,7 +1230,7 @@ label {
     display: flex;
     align-items: center;
     height: 28px;
-    padding: 0 2px 0 4px;
+    padding: 0 3px 0 6px;
     background: var(--bg-input);
     border: 1px solid var(--border-subtle);
     position: relative;
@@ -1248,25 +1248,28 @@ label {
 }
 
 .timing-matrix-box.segmented-box .scrub-label {
-    flex: 0 0 46px;
-    width: 46px;
-    font-size: 7.5px;
-    font-weight: 800;
-    letter-spacing: -0.2px;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 100%;
     color: var(--text-secondary);
     display: flex;
     align-items: center;
-    gap: 2px;
-    white-space: nowrap;
+    justify-content: center;
     cursor: ew-resize;
     user-select: none;
-    overflow: hidden;
+    margin-right: 4px;
+    flex-shrink: 0;
+    transition: color var(--transition-fast);
+}
+
+.timing-matrix-box.segmented-box:hover .scrub-label {
+    color: #ffd13b;
 }
 
 .timing-matrix-box.segmented-box .scrub-label svg {
     flex-shrink: 0;
-    width: 7.5px;
-    height: 7.5px;
+    width: 13px;
+    height: 13px;
 }
 
 .time-segmented-cluster {
@@ -1275,7 +1278,7 @@ label {
     flex: 1;
     min-width: 0;
     gap: 0;
-    height: 20px;
+    height: 22px;
 }
 
 .time-seg-group {
@@ -1304,7 +1307,7 @@ label {
     border: none;
     outline: none;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 9.5px;
+    font-size: 10.5px;
     font-weight: 700;
     color: var(--text-bright);
     text-align: center;
@@ -1327,7 +1330,7 @@ label {
 .time-seg-arrows {
     display: flex;
     flex-direction: column;
-    width: 8.5px;
+    width: 12px;
     height: 100%;
     border-left: 1px solid rgba(255, 255, 255, 0.08);
     background: #131318;
@@ -1343,7 +1346,7 @@ label {
     border: none;
     outline: none;
     cursor: pointer;
-    font-size: 4px;
+    font-size: 6px;
     line-height: 1;
     color: var(--text-secondary);
     padding: 0;
@@ -1357,16 +1360,16 @@ label {
 }
 
 .time-seg-btn:active {
-    background: #ffffff;
-    color: #000000;
+    background: #ffd13b;
+    color: #111114;
 }
 
 .time-seg-colon {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 8px;
+    font-size: 8.5px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.25);
-    margin: 0 0.5px;
+    margin: 0 1px;
     user-select: none;
     flex-shrink: 0;
 }
