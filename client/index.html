@@ -340,34 +340,70 @@
                         <!-- Row 1: Absolute Points on the Timeline (M1 & M3) -->
                         <div class="timing-matrix-row">
                             <!-- Field 1: Start Time (M1: وقت بداية التأثير) -->
-                            <div class="precision-input-box timing-matrix-box" id="time-in-point-box">
+                            <div class="precision-input-box timing-matrix-box segmented-box" id="time-in-point-box">
                                 <label class="scrub-label" data-target="time-in-point" title="Start of Effect (M1: وقت بداية التأثير على التايم لاين)">
-                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                    <span class="scrub-text">In Point</span>
+                                    <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    <span class="scrub-text">IN</span>
                                 </label>
-                                <div class="input-val-wrap">
-                                    <input type="text" id="time-in-point" class="time-input timecode-input" value="00:00:00" spellcheck="false" autocomplete="off">
-                                    <span class="unit-tag tc-tag">TC</span>
-                                </div>
-                                <div class="stepper-actions">
-                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
-                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                <div class="time-segmented-cluster" data-target="time-in-point">
+                                    <input type="hidden" id="time-in-point" class="time-input timecode-input" value="00:00:00">
+                                    <div class="time-seg-group" title="Minutes (دقائق)">
+                                        <input type="text" class="time-seg-input" data-unit="m" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="m" data-dir="up" tabindex="-1" title="+1 Min">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="m" data-dir="down" tabindex="-1" title="-1 Min">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Seconds (ثواني)">
+                                        <input type="text" class="time-seg-input" data-unit="s" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="s" data-dir="up" tabindex="-1" title="+1 Sec">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="s" data-dir="down" tabindex="-1" title="-1 Sec">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Frames (فريمات)">
+                                        <input type="text" class="time-seg-input" data-unit="f" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="f" data-dir="up" tabindex="-1" title="+1 Frame">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="f" data-dir="down" tabindex="-1" title="-1 Frame">▼</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Field 2: Outro Start Time (M3: وقت بداية النهاية) -->
-                            <div class="precision-input-box timing-matrix-box" id="time-out-point-box">
+                            <div class="precision-input-box timing-matrix-box segmented-box" id="time-out-point-box">
                                 <label class="scrub-label" data-target="time-out-point" title="Start of Outro (M3: وقت بداية النهاية على التايم لاين)">
-                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                                    <span class="scrub-text">Out Point</span>
+                                    <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                    <span class="scrub-text">OUT</span>
                                 </label>
-                                <div class="input-val-wrap">
-                                    <input type="text" id="time-out-point" class="time-input timecode-input" value="00:02:15" spellcheck="false" autocomplete="off">
-                                    <span class="unit-tag tc-tag">TC</span>
-                                </div>
-                                <div class="stepper-actions">
-                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
-                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                <div class="time-segmented-cluster" data-target="time-out-point">
+                                    <input type="hidden" id="time-out-point" class="time-input timecode-input" value="00:02:15">
+                                    <div class="time-seg-group" title="Minutes (دقائق)">
+                                        <input type="text" class="time-seg-input" data-unit="m" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="m" data-dir="up" tabindex="-1" title="+1 Min">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="m" data-dir="down" tabindex="-1" title="-1 Min">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Seconds (ثواني)">
+                                        <input type="text" class="time-seg-input" data-unit="s" maxlength="2" value="02" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="s" data-dir="up" tabindex="-1" title="+1 Sec">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="s" data-dir="down" tabindex="-1" title="-1 Sec">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Frames (فريمات)">
+                                        <input type="text" class="time-seg-input" data-unit="f" maxlength="2" value="15" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="f" data-dir="up" tabindex="-1" title="+1 Frame">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="f" data-dir="down" tabindex="-1" title="-1 Frame">▼</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -375,34 +411,70 @@
                         <!-- Row 2: Lifespans / Durations (M2-M1 and M4-M3) -->
                         <div class="timing-matrix-row">
                             <!-- Field 3: Intro Duration (عمر البداية: M2 - M1) -->
-                            <div class="precision-input-box timing-matrix-box" id="line-dur-box">
+                            <div class="precision-input-box timing-matrix-box segmented-box" id="line-dur-box">
                                 <label class="scrub-label" data-target="line-dur" title="Intro Lifespan (عمر البداية: المدة بين الماركر 1 والماركر 2)">
-                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                    <span class="scrub-text">In Dur</span>
+                                    <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    <span class="scrub-text">IN DUR</span>
                                 </label>
-                                <div class="input-val-wrap">
-                                    <input type="text" id="line-dur" class="time-input timecode-input" value="00:00:15" spellcheck="false" autocomplete="off">
-                                    <span class="unit-tag tc-tag">TC</span>
-                                </div>
-                                <div class="stepper-actions">
-                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
-                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                <div class="time-segmented-cluster" data-target="line-dur">
+                                    <input type="hidden" id="line-dur" class="time-input timecode-input" value="00:00:15">
+                                    <div class="time-seg-group" title="Minutes (دقائق)">
+                                        <input type="text" class="time-seg-input" data-unit="m" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="m" data-dir="up" tabindex="-1" title="+1 Min">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="m" data-dir="down" tabindex="-1" title="-1 Min">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Seconds (ثواني)">
+                                        <input type="text" class="time-seg-input" data-unit="s" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="s" data-dir="up" tabindex="-1" title="+1 Sec">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="s" data-dir="down" tabindex="-1" title="-1 Sec">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Frames (فريمات)">
+                                        <input type="text" class="time-seg-input" data-unit="f" maxlength="2" value="15" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="f" data-dir="up" tabindex="-1" title="+1 Frame">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="f" data-dir="down" tabindex="-1" title="-1 Frame">▼</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Field 4: Outro Duration (عمر النهاية: M4 - M3) -->
-                            <div class="precision-input-box timing-matrix-box" id="out-time-col">
+                            <div class="precision-input-box timing-matrix-box segmented-box" id="out-time-col">
                                 <label class="scrub-label" data-target="out-time" title="Outro Lifespan (عمر النهاية: المدة بين الماركر 3 والماركر 4)">
-                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
-                                    <span class="scrub-text">Out Dur</span>
+                                    <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+                                    <span class="scrub-text">OUT DUR</span>
                                 </label>
-                                <div class="input-val-wrap">
-                                    <input type="text" id="out-time" class="time-input timecode-input" value="00:00:10" spellcheck="false" autocomplete="off">
-                                    <span class="unit-tag tc-tag">TC</span>
-                                </div>
-                                <div class="stepper-actions">
-                                    <button type="button" class="step-arrow step-up" tabindex="-1" title="Increase (+1 frame, Shift=+5)">▲</button>
-                                    <button type="button" class="step-arrow step-down" tabindex="-1" title="Decrease (-1 frame, Shift=-5)">▼</button>
+                                <div class="time-segmented-cluster" data-target="out-time">
+                                    <input type="hidden" id="out-time" class="time-input timecode-input" value="00:00:10">
+                                    <div class="time-seg-group" title="Minutes (دقائق)">
+                                        <input type="text" class="time-seg-input" data-unit="m" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="m" data-dir="up" tabindex="-1" title="+1 Min">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="m" data-dir="down" tabindex="-1" title="-1 Min">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Seconds (ثواني)">
+                                        <input type="text" class="time-seg-input" data-unit="s" maxlength="2" value="00" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="s" data-dir="up" tabindex="-1" title="+1 Sec">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="s" data-dir="down" tabindex="-1" title="-1 Sec">▼</button>
+                                        </div>
+                                    </div>
+                                    <span class="time-seg-colon">:</span>
+                                    <div class="time-seg-group" title="Frames (فريمات)">
+                                        <input type="text" class="time-seg-input" data-unit="f" maxlength="2" value="10" autocomplete="off" spellcheck="false">
+                                        <div class="time-seg-arrows">
+                                            <button type="button" class="time-seg-btn seg-up" data-unit="f" data-dir="up" tabindex="-1" title="+1 Frame">▲</button>
+                                            <button type="button" class="time-seg-btn seg-down" data-unit="f" data-dir="down" tabindex="-1" title="-1 Frame">▼</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

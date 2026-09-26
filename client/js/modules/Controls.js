@@ -88,6 +88,115 @@
             }
         },
 
+        pad2: function (num) {
+            var n = parseInt(num, 10) || 0;
+            return (n < 10 ? "0" : "") + Math.max(0, n);
+        },
+
+        timecodeToFrames: function (tc, fps) {
+            fps = fps || (HS.TimeEngine ? HS.TimeEngine.getFPS() : 25) || 25;
+            if (!tc && tc !== 0) return 0;
+            if (typeof tc === "number") return Math.max(0, Math.round(tc * fps));
+            var parts = String(tc).split(":");
+            if (parts.length >= 3) {
+                var m = parseInt(parts[0], 10) || 0;
+                var s = parseInt(parts[1], 10) || 0;
+                var f = parseInt(parts[2], 10) || 0;
+                return Math.max(0, (m * 60 * fps) + (s * fps) + f);
+            }
+            if (HS.TimeEngine) {
+                return Math.max(0, Math.round(HS.TimeEngine.toSeconds(tc) * fps));
+            }
+            return 0;
+        },
+
+        framesToTimecodeObj: function (totalFrames, fps) {
+            fps = fps || (HS.TimeEngine ? HS.TimeEngine.getFPS() : 25) || 25;
+            var tf = Math.max(0, Math.round(totalFrames));
+            var m = Math.floor(tf / (fps * 60));
+            var rem = tf % (fps * 60);
+            var s = Math.floor(rem / fps);
+            var f = rem % fps;
+            return {
+                m: HS.Controls.pad2(m),
+                s: HS.Controls.pad2(s),
+                f: HS.Controls.pad2(f),
+                str: HS.Controls.pad2(m) + ":" + HS.Controls.pad2(s) + ":" + HS.Controls.pad2(f),
+                seconds: tf / fps
+            };
+        },
+
+        syncClusterFromMaster: function (clusterOrId) {
+            var cluster = (typeof clusterOrId === "string")
+                ? document.querySelector('.time-segmented-cluster[data-target="' + clusterOrId + '"]')
+                : clusterOrId;
+            if (!cluster) return;
+            var targetId = cluster.getAttribute("data-target");
+            var master = document.getElementById(targetId);
+            if (!master) return;
+            var fps = (HS.TimeEngine ? HS.TimeEngine.getFPS() : 25) || 25;
+            var tcObj = HS.Controls.framesToTimecodeObj(HS.Controls.timecodeToFrames(master.value, fps), fps);
+            var mInp = cluster.querySelector('.time-seg-input[data-unit="m"]');
+            var sInp = cluster.querySelector('.time-seg-input[data-unit="s"]');
+            var fInp = cluster.querySelector('.time-seg-input[data-unit="f"]');
+            if (mInp && document.activeElement !== mInp) mInp.value = tcObj.m;
+            if (sInp && document.activeElement !== sInp) sInp.value = tcObj.s;
+            if (fInp && document.activeElement !== fInp) fInp.value = tcObj.f;
+            HS.Controls.updateTimeInputTooltip(master);
+        },
+
+        syncAllSegmentedFromMaster: function () {
+            document.querySelectorAll('.time-segmented-cluster').forEach(function (cluster) {
+                HS.Controls.syncClusterFromMaster(cluster);
+            });
+        },
+
+        updateMasterFromCluster: function (cluster) {
+            if (!cluster) return;
+            var targetId = cluster.getAttribute("data-target");
+            var master = document.getElementById(targetId);
+            if (!master) return;
+            var fps = (HS.TimeEngine ? HS.TimeEngine.getFPS() : 25) || 25;
+            var mInp = cluster.querySelector('.time-seg-input[data-unit="m"]');
+            var sInp = cluster.querySelector('.time-seg-input[data-unit="s"]');
+            var fInp = cluster.querySelector('.time-seg-input[data-unit="f"]');
+            var m = mInp ? mInp.value : 0;
+            var s = sInp ? sInp.value : 0;
+            var f = fInp ? fInp.value : 0;
+            var totalF = HS.Controls.timecodeToFrames(HS.Controls.pad2(m) + ":" + HS.Controls.pad2(s) + ":" + HS.Controls.pad2(f), fps);
+            var tcObj = HS.Controls.framesToTimecodeObj(totalF, fps);
+            master.value = tcObj.str;
+            HS.Controls.syncClusterFromMaster(cluster);
+            master.dispatchEvent(new Event("change", { bubbles: true }));
+        },
+
+        stepSegmentUnit: function (cluster, unit, isUp, multiplier) {
+            multiplier = multiplier || 1;
+            if (!cluster) return;
+            var targetId = cluster.getAttribute("data-target");
+            var master = document.getElementById(targetId);
+            if (!master) return;
+            var fps = (HS.TimeEngine ? HS.TimeEngine.getFPS() : 25) || 25;
+
+            var curFrames = HS.Controls.timecodeToFrames(master.value, fps);
+            var frameDelta = 0;
+            if (unit === "m") {
+                frameDelta = (isUp ? 1 : -1) * (fps * 60) * multiplier;
+            } else if (unit === "s") {
+                frameDelta = (isUp ? 1 : -1) * fps * multiplier;
+            } else if (unit === "f") {
+                frameDelta = (isUp ? 1 : -1) * multiplier;
+            }
+
+            var allowZero = (targetId === "stagger" || targetId === "time-in-point");
+            var minFrames = allowZero ? 0 : 1;
+            var newFrames = Math.max(minFrames, curFrames + frameDelta);
+            var tcObj = HS.Controls.framesToTimecodeObj(newFrames, fps);
+            master.value = tcObj.str;
+            HS.Controls.syncClusterFromMaster(cluster);
+            master.dispatchEvent(new Event("change", { bubbles: true }));
+        },
+
         updateTimeInputsForFps: function (fps) {
             if (HS.TimeEngine && typeof HS.TimeEngine.setFPS === "function") {
                 HS.TimeEngine.setFPS(fps);
@@ -111,6 +220,11 @@
             document.querySelectorAll(".unit-toggle-btn").forEach(function (btn) {
                 btn.textContent = fmtLabel;
             });
+
+            // Sync segmented timecode clusters to new FPS values
+            if (HS.Controls && HS.Controls.syncAllSegmentedFromMaster) {
+                HS.Controls.syncAllSegmentedFromMaster();
+            }
         },
 
         cycleTimeFormat: function () {
@@ -828,6 +942,16 @@
 
             // Precision Steppers Click (▲ ▼)
             document.addEventListener("click", function (e) {
+                var segBtn = e.target.closest(".time-seg-btn");
+                if (segBtn) {
+                    var cluster = segBtn.closest(".time-segmented-cluster");
+                    var unit = segBtn.getAttribute("data-unit");
+                    var isUp = segBtn.getAttribute("data-dir") === "up";
+                    var mult = e.shiftKey ? 5 : 1;
+                    HS.Controls.stepSegmentUnit(cluster, unit, isUp, mult);
+                    return;
+                }
+
                 var upBtn = e.target.closest(".step-up");
                 var downBtn = e.target.closest(".step-down");
                 if (upBtn) {
@@ -848,12 +972,49 @@
             });
 
             // Mouse Wheel Scrubbing with Shift / Alt modifiers
-            document.querySelectorAll(".precision-input-box input").forEach(function (inp) {
+            document.querySelectorAll(".precision-input-box input:not(.time-seg-input)").forEach(function (inp) {
                 inp.addEventListener("wheel", function (e) {
                     e.preventDefault();
                     var mult = e.shiftKey ? 10 : (e.altKey ? 0.1 : 1);
                     HS.Controls.adjustStepper(inp, e.deltaY < 0, mult);
                 }, { passive: false });
+            });
+
+            // Segmented Time Input Listeners (MM, SS, FF)
+            document.querySelectorAll(".time-seg-input").forEach(function (inp) {
+                inp.addEventListener("wheel", function (e) {
+                    e.preventDefault();
+                    var cluster = inp.closest(".time-segmented-cluster");
+                    var unit = inp.getAttribute("data-unit");
+                    var mult = e.shiftKey ? 5 : 1;
+                    HS.Controls.stepSegmentUnit(cluster, unit, e.deltaY < 0, mult);
+                }, { passive: false });
+
+                inp.addEventListener("input", function () {
+                    HS.markInteraction();
+                    var cluster = inp.closest(".time-segmented-cluster");
+                    HS.Controls.updateMasterFromCluster(cluster);
+                });
+
+                inp.addEventListener("change", function () {
+                    HS.markInteraction();
+                    var cluster = inp.closest(".time-segmented-cluster");
+                    HS.Controls.updateMasterFromCluster(cluster);
+                });
+
+                inp.addEventListener("keydown", function (e) {
+                    var cluster = inp.closest(".time-segmented-cluster");
+                    var unit = inp.getAttribute("data-unit");
+                    if (e.key === "Enter") {
+                        inp.blur();
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        HS.Controls.stepSegmentUnit(cluster, unit, true, e.shiftKey ? 5 : 1);
+                    } else if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        HS.Controls.stepSegmentUnit(cluster, unit, false, e.shiftKey ? 5 : 1);
+                    }
+                });
             });
 
             // Interactive Horizontal Drag Scrubbing (Native AE Feel)
@@ -984,6 +1145,11 @@
 
             // Initialize time inputs for current FPS
             HS.Controls.updateTimeInputsForFps((HS.State && HS.State.fps) ? HS.State.fps : 25);
+
+            // Sync initial values to segmented clusters
+            if (HS.Controls && HS.Controls.syncAllSegmentedFromMaster) {
+                HS.Controls.syncAllSegmentedFromMaster();
+            }
         }
     };
 })(window, document);

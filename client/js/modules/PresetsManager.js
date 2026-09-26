@@ -297,6 +297,9 @@
                 if (HS.DOM.staggerInput) HS.Controls.updateTimeInputTooltip(HS.DOM.staggerInput);
                 if (HS.DOM.outTimeInput) HS.Controls.updateTimeInputTooltip(HS.DOM.outTimeInput);
             }
+            if (HS.Controls && typeof HS.Controls.syncAllSegmentedFromMaster === "function") {
+                HS.Controls.syncAllSegmentedFromMaster();
+            }
 
             if (HS.Controls && HS.Controls.syncChipClasses) HS.Controls.syncChipClasses();
             if (HS.Controls && HS.Controls.syncShapeButtons) HS.Controls.syncShapeButtons();

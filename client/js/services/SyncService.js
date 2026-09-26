@@ -105,6 +105,9 @@
                                     HS.DOM.outTimeInput.value = HS.TimeEngine.fromSeconds(tm.outDur, "tc");
                                     HS.Controls.updateTimeInputTooltip(HS.DOM.outTimeInput);
                                 }
+                                if (HS.Controls && typeof HS.Controls.syncAllSegmentedFromMaster === "function") {
+                                    HS.Controls.syncAllSegmentedFromMaster();
+                                }
                             }
                             if (typeof tm.hasOutro === "boolean" && HS.DOM && HS.DOM.outroCheck && document.activeElement !== HS.DOM.outroCheck) {
                                 HS.DOM.outroCheck.checked = tm.hasOutro;

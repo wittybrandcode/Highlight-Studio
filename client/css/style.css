@@ -1225,6 +1225,144 @@ label {
     pointer-events: none;
 }
 
+/* Precision Segmented Timing Matrix (MM : SS : FF with Individual Steppers) */
+.timing-matrix-box.segmented-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 28px;
+    padding: 0 2px 0 4px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    position: relative;
+    overflow: hidden;
+}
+
+.timing-matrix-box.segmented-box:hover {
+    background: var(--bg-input-hover);
+    border-color: var(--border-contrast);
+}
+
+.timing-matrix-box.segmented-box:focus-within {
+    background: var(--bg-input-focus);
+    border-color: var(--border-focus);
+}
+
+.timing-matrix-box.segmented-box .scrub-label {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: -0.2px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    cursor: ew-resize;
+    user-select: none;
+    flex-shrink: 0;
+    padding-right: 2px;
+}
+
+.timing-matrix-box.segmented-box .scrub-label svg {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+}
+
+.time-segmented-cluster {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+}
+
+.time-seg-group {
+    display: inline-flex;
+    align-items: center;
+    background: #171720;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    height: 19px;
+    padding: 0;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.time-seg-group:hover, .time-seg-group:focus-within {
+    border-color: rgba(255, 255, 255, 0.28);
+    background: #20202c;
+}
+
+.time-seg-input {
+    width: 13px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-bright);
+    text-align: center;
+    padding: 0;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+
+.time-seg-input::-webkit-inner-spin-button,
+.time-seg-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.time-seg-input:focus {
+    color: #ffb300;
+    background: rgba(255, 179, 0, 0.1);
+}
+
+.time-seg-arrows {
+    display: flex;
+    flex-direction: column;
+    width: 8px;
+    height: 100%;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    background: #131318;
+}
+
+.time-seg-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 4.5px;
+    line-height: 1;
+    color: var(--text-secondary);
+    padding: 0;
+    transition: background 0.08s ease, color 0.08s ease;
+    user-select: none;
+}
+
+.time-seg-btn:hover {
+    background: #d4d4e2;
+    color: #111114;
+}
+
+.time-seg-btn:active {
+    background: #ffffff;
+    color: #000000;
+}
+
+.time-seg-colon {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.25);
+    margin: 0 0.5px;
+    user-select: none;
+}
+
 /* Outro Direction Bar (Dual Exit with Master Sync Link) */
 .outro-direction-bar {
     display: flex;
