@@ -121,11 +121,24 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
             $._smartHighlighter.log("No previous link: creating fresh highlight.");
         }
 
+        // استخراج قيم التوقيت الصريحة من بيانات الطلب (لوحة التحكم)
+        var userInPoint = (typeof data.inPoint === "number" && !isNaN(data.inPoint) && data.inPoint >= 0) ? data.inPoint : null;
+        var userOutPoint = (typeof data.outPoint === "number" && !isNaN(data.outPoint) && data.outPoint >= 0) ? data.outPoint : null;
+        var userInDur = (typeof data.lineDuration === "number" && !isNaN(data.lineDuration) && data.lineDuration > 0) ? data.lineDuration : 0.35;
+        var userOutDur = (typeof data.outTime === "number" && !isNaN(data.outTime) && data.outTime > 0) ? data.outTime : 0.4;
+
         // قراءة الماركرز للمزامنة الصوتية أو ماركرز التوقيت المخصصة إذا كان الخيار مفعلاً
         var timingMarkers = (data.syncMarkers && $._smartHighlighter.readTimingMarkers) ? $._smartHighlighter.readTimingMarkers(textLayer) : null;
         var hasTimingMarkers = (timingMarkers && timingMarkers.inStart !== null && timingMarkers.inEnd !== null);
         var outroMismatch = (data.syncMarkers && hasTimingMarkers && ((data.outro && (timingMarkers.outStart === null || timingMarkers.outEnd === null)) || (!data.outro && timingMarkers.outStart !== null)));
-        if (data.syncMarkers && (!hasTimingMarkers || outroMismatch) && $._smartHighlighter.addTimingMarkers) {
+        var timeMismatch = false;
+        if (hasTimingMarkers && userInPoint !== null && Math.abs(timingMarkers.inStart - userInPoint) > 0.02) {
+            timeMismatch = true;
+        }
+        if (hasTimingMarkers && userOutPoint !== null && timingMarkers.outStart !== null && Math.abs(timingMarkers.outStart - userOutPoint) > 0.02) {
+            timeMismatch = true;
+        }
+        if (data.syncMarkers && (!hasTimingMarkers || outroMismatch || timeMismatch) && $._smartHighlighter.addTimingMarkers) {
             $._smartHighlighter.addTimingMarkers(data.inPoint, data.outPoint, data.lineDuration, data.outTime, data.outro);
             timingMarkers = $._smartHighlighter.readTimingMarkers(textLayer);
             hasTimingMarkers = (timingMarkers && timingMarkers.inStart !== null && timingMarkers.inEnd !== null);
@@ -135,7 +148,12 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
 
         // إعدادات النمط والحركة
         var lastLayer = textLayer;
-        var startTime = comp.time;
+        var startTime = (userInPoint !== null) ? userInPoint : comp.time;
+        if (textLayer && typeof startTime === "number") {
+            try {
+                if (textLayer.inPoint > startTime) textLayer.inPoint = Math.max(0, startTime);
+            } catch(eExtLyr) {}
+        }
         var style = styleName;
         var motion = motionName;
 
@@ -161,7 +179,7 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
         var textOutStart = null;
         var textOutEnd = null;
 
-        if (hasTimingMarkers) {
+        if (data.syncMarkers && hasTimingMarkers) {
             typeStartTime = timingMarkers.inStart;
             typeTotalDur = Math.max(0.04, timingMarkers.inEnd - timingMarkers.inStart);
             if (timingMarkers.outStart !== null && timingMarkers.outEnd !== null) {
@@ -169,23 +187,38 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                 textOutStart = timingMarkers.outStart;
                 textOutEnd = timingMarkers.outEnd;
             }
+        } else if (userInPoint !== null) {
+            typeStartTime = userInPoint;
+            typeTotalDur = Math.max(0.04, userInDur);
+            if (hasTextOutro) {
+                textOutStart = (userOutPoint !== null && userOutPoint > (typeStartTime + typeTotalDur))
+                    ? userOutPoint
+                    : ((typeStartTime + typeTotalDur) + 1.5);
+                textOutEnd = textOutStart + userOutDur;
+            }
         } else if (detectedAnim && detectedAnim.hasKeys && detectedAnim.endTime > detectedAnim.startTime) {
             typeStartTime = detectedAnim.startTime;
             typeTotalDur = detectedAnim.endTime - detectedAnim.startTime;
             if (hasTextOutro) {
-                var holdTime = (typeof data.outTime === "number" && data.outTime > 0) ? data.outTime : 1.5;
+                var holdTime = userOutDur;
                 textOutStart = (typeStartTime + typeTotalDur) + holdTime;
-                textOutEnd = textOutStart + typeTotalDur;
+                textOutEnd = textOutStart + userOutDur;
             }
         } else {
-            typeStartTime = (data.syncMarkers && typeof data.inPoint === "number" && data.inPoint >= 0) ? data.inPoint : startTime;
-            var baseUnitDur = (data.lineDuration && data.lineDuration > 0) ? data.lineDuration : 0.35;
-            typeTotalDur = Math.max(0.04, baseUnitDur * totalBoxes);
+            typeStartTime = startTime;
+            typeTotalDur = Math.max(0.04, userInDur);
             if (hasTextOutro) {
-                textOutStart = (typeof data.outPoint === "number" && data.outPoint > (typeStartTime + typeTotalDur)) ? data.outPoint : ((typeStartTime + typeTotalDur) + 1.5);
-                var outroDur = (typeof data.outTime === "number" && data.outTime > 0) ? data.outTime : (baseUnitDur * totalBoxes);
-                textOutEnd = textOutStart + outroDur;
+                textOutStart = (userOutPoint !== null && userOutPoint > (typeStartTime + typeTotalDur))
+                    ? userOutPoint
+                    : ((typeStartTime + typeTotalDur) + 1.5);
+                textOutEnd = textOutStart + userOutDur;
             }
+        }
+
+        if (textLayer && hasTextOutro && typeof textOutEnd === "number") {
+            try {
+                if (textLayer.outPoint < textOutEnd) textLayer.outPoint = textOutEnd;
+            } catch(eExtOut) {}
         }
 
         var textOutroOrder = data.textOutroOrder || data.outroOrder || "first";
@@ -566,12 +599,13 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                         }
 
                         var exitBaseTime = (typeof data.outPoint === "number" && data.outPoint > totalEntryFinish) ? data.outPoint : (totalEntryFinish + holdTime);
+                        var outroLineDur = (typeof data.outTime === "number" && data.outTime > 0) ? data.outTime : lineDur;
                         if (data.sequential) {
-                            t3 = exitBaseTime + (exitIndex * (lineDur + gapOrStagger));
-                            t4 = t3 + lineDur;
+                            t3 = exitBaseTime + (exitIndex * (outroLineDur + gapOrStagger));
+                            t4 = t3 + outroLineDur;
                         } else {
                             t3 = exitBaseTime + (exitIndex * gapOrStagger);
-                            t4 = t3 + lineDur;
+                            t4 = t3 + outroLineDur;
                         }
                     }
 

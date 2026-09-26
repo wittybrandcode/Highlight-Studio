@@ -185,15 +185,23 @@ $._smartHighlighter.addTimingMarkers = function (inPoint, outPoint, inDur, outDu
         }
 
         var tInStart = (typeof inPoint === "number" && inPoint >= 0) ? inPoint : comp.time;
-        if (tInStart < textLayer.inPoint || tInStart >= textLayer.outPoint) {
-            tInStart = textLayer.inPoint;
-        }
+        try {
+            if (textLayer.inPoint > tInStart) {
+                textLayer.inPoint = Math.max(0, tInStart);
+            }
+        } catch (eInP) {}
         var dIn = (typeof inDur === "number" && inDur > 0) ? inDur : 0.6;
         var tInEnd = tInStart + dIn;
 
         var dOut = (typeof outDur === "number" && outDur > 0) ? outDur : 0.4;
         var tOutStart = (typeof outPoint === "number" && outPoint > tInEnd) ? outPoint : (tInEnd + 1.5);
         var tOutEnd = tOutStart + dOut;
+
+        try {
+            if (textLayer.outPoint < tOutEnd) {
+                textLayer.outPoint = tOutEnd;
+            }
+        } catch (eOutP) {}
 
         // 1. HL_IN_START (Green = 8)
         var m1 = new MarkerValue("HL_IN_START");

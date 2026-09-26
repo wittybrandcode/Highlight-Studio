@@ -139,6 +139,9 @@
                         HS.DOM.markerSyncCheck.checked = true;
                         HS.Controls.syncChipClasses();
                     }
+                    if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                        HS.Actions.executeSmartAction(false);
+                    }
                 } else if (res && res.indexOf("ERROR") !== -1) {
                     HS.setStatus(res.replace("ERROR:", "").trim(), true);
                 }
@@ -805,6 +808,14 @@
                     item.chk.addEventListener("change", function () {
                         HS.markInteraction();
                         HS.Controls.syncChipClasses();
+                        if (item.id === "chip-markers") {
+                            if (this.checked && HS.Controls.syncMarkersToAE) {
+                                HS.Controls.syncMarkersToAE();
+                            }
+                            if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                                HS.Actions.executeSmartAction(false);
+                            }
+                        }
                     });
                 }
                 var chipEl = document.getElementById(item.id);
@@ -924,8 +935,14 @@
                         this.value = HS.TimeEngine.normalize(this.value, undefined, allowZero);
                     }
                     HS.Controls.updateTimeInputTooltip(this);
-                    if (this.id === "time-in-point" || this.id === "time-out-point" || this.id === "line-dur" || this.id === "out-time") {
+                    if (this.id === "time-in-point" || this.id === "time-out-point" || this.id === "line-dur" || this.id === "out-time" || this.id === "stagger") {
                         HS.Controls.syncMarkersToAE();
+                        if (HS.State.liveUpdate !== false && HS.State.mainTab === "paragraph" && HS.State.hasHighlight) {
+                            if (HS.Controls._timeDebounceTimer) clearTimeout(HS.Controls._timeDebounceTimer);
+                            HS.Controls._timeDebounceTimer = setTimeout(function () {
+                                HS.Actions.executeSmartAction(false);
+                            }, 120);
+                        }
                     }
                 });
             });
