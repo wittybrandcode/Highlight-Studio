@@ -461,15 +461,14 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                         "    }\n" +
                         "    if (inS !== null && inE !== null) {\n" +
                         (isType ? (
-                            isParallel ? (
                             "        var inDur = Math.max(0.01, inE - inS);\n" +
+                            (isParallel ? (
                             "        var startT = inS;\n" +
                             "        var endT = inS + (" + (typewriterSpeedMode === "synced" ? "inDur" : ("Math.max(0.08, inDur * " + boxDurFrac.toFixed(4) + ")")) + ");\n"
                             ) : (
-                            "        var inDur = Math.max(0.01, inE - inS);\n" +
                             "        var startT = inS + (" + rS.toFixed(4) + " * inDur);\n" +
                             "        var endT = inS + (" + rE.toFixed(4) + " * inDur);\n"
-                            )
+                            ))
                         ) : (
                         "        var delay = " + (k * gapOrStagger) + ";\n" +
                         "        var startT = inS + delay;\n" +
@@ -478,8 +477,8 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                         "        var cur = time;\n" +
                         "        if (outS !== null && outE !== null) {\n" +
                         (isType ? (
-                            isParallel ? (
                             "            var outDur = Math.max(0.01, outE - outS);\n" +
+                            (isParallel ? (
                             "            var oStartT = outS;\n" +
                             "            var oEndT = outS + (" + (typewriterSpeedMode === "synced" ? "outDur" : ("Math.max(0.08, outDur * " + boxDurFrac.toFixed(4) + ")")) + ");\n"
                             ) : (
@@ -490,7 +489,7 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
                             "            var oStartT = outS + (" + rS.toFixed(4) + " * outDur);\n" +
                             "            var oEndT = outS + (" + rE.toFixed(4) + " * outDur);\n"
                             ))
-                            )
+                            ))
                         ) : (
                         "            var exitDelay = " + (exitK * gapOrStagger) + ";\n" +
                         "            var oStartT = outS + exitDelay;\n" +
