@@ -5,9 +5,10 @@
  * Accurately translates between Seconds, Frames, and MM:SS:FF timecode notation
  * strictly adhering to the active composition's exact FPS (e.g. 24, 25, 29.97, 30, 60).
  */
-(function (window) {
+(function (globalScope) {
     "use strict";
 
+    var window = globalScope;
     var HS = window.HS || {};
     window.HS = HS;
 
@@ -255,4 +256,8 @@
         currentFormat = "tc";
     }
 
-})(window);
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = HS.TimeEngine;
+    }
+
+})(typeof window !== "undefined" ? window : (typeof global !== "undefined" ? global : this));

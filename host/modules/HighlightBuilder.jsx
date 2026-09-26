@@ -51,7 +51,6 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
 
         var targetScan = $._smartHighlighter.scanTargetBoxes(textLayer, comp, data);
         if (!targetScan) {
-            app.endUndoGroup();
             return "ERROR: طبقة النص فارغة أو تعذر قراءتها.";
         }
 
@@ -665,7 +664,6 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
         }
 
         $._smartHighlighter.writeMeta(textLayer, scan);
-        app.endUndoGroup();
 
         var unitName = (targetScan.mode === "lines") ? "line(s)" : (targetScan.mode === "tagged" ? "tagged keyword(s)" : "word(s)");
         var report = hadPreviousLink
@@ -676,9 +674,10 @@ $._smartHighlighter.createHighlight = function (jsonPayloadStr, _isSync, _preBox
         return report;
 
     } catch (err) {
-        $._smartHighlighter.safeEndUndoGroup();
         $._smartHighlighter.log("createHighlight ERROR: " + err.toString() + " line:" + err.line);
         return "ERROR: " + err.toString();
+    } finally {
+        $._smartHighlighter.safeEndUndoGroup();
     }
 };
 
@@ -798,7 +797,6 @@ $._smartHighlighter.removeHighlight = function () {
             }
         } catch (eAnc) {}
 
-        app.endUndoGroup();
         $._smartHighlighter.log("removeHighlight: " + removedBoxes + " boxes, " + removedEffects + " master effects, " + removedMarkers + " markers removed");
         
         var summary = [];
@@ -809,9 +807,10 @@ $._smartHighlighter.removeHighlight = function () {
         var details = (summary.length > 0) ? summary.join(", ") : "All highlights and controls";
         return "SUCCESS: Cleared everything (" + details + " removed).";
     } catch (e) {
-        $._smartHighlighter.safeEndUndoGroup();
         $._smartHighlighter.log("removeHighlight ERROR: " + e.toString());
         return "ERROR: " + e.toString();
+    } finally {
+        $._smartHighlighter.safeEndUndoGroup();
     }
 };
 

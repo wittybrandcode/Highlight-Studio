@@ -1027,15 +1027,15 @@ $._smartHighlighter.buildPhraseHighlights = function (jsonPayloadStr) {
             }
         }
 
-        app.endUndoGroup();
         var reportMsg = "SUCCESS: Applied " + totalBoxes + " phrase highlight box(es)";
         $._smartHighlighter.log(reportMsg);
         return reportMsg;
 
     } catch (e) {
-        try { app.endUndoGroup(); } catch (eGrp) {}
         $._smartHighlighter.log("buildPhraseHighlights ERROR: " + e.toString());
         return "ERROR: " + e.toString();
+    } finally {
+        $._smartHighlighter.safeEndUndoGroup();
     }
 };
 
@@ -1088,14 +1088,13 @@ $._smartHighlighter.clearPhraseHighlights = function () {
                 } catch (eR) {}
             }
         }
-        app.endUndoGroup();
-
         var msg = "SUCCESS: Removed " + removed + " phrase highlight(s)";
         $._smartHighlighter.log(msg);
         return msg;
     } catch (e) {
-        try { app.endUndoGroup(); } catch (eGrp) {}
         return "ERROR: " + e.toString();
+    } finally {
+        $._smartHighlighter.safeEndUndoGroup();
     }
 };
 
@@ -1304,14 +1303,13 @@ $._smartHighlighter.removeSinglePhrase = function (phraseId) {
                 }
             }
         }
-        app.endUndoGroup();
-
         var msg = "SUCCESS: Removed phrase (" + removed + " box(es))";
         $._smartHighlighter.log(msg);
         return msg;
     } catch (e) {
-        try { app.endUndoGroup(); } catch (eGrp) {}
         return "ERROR: " + e.toString();
+    } finally {
+        $._smartHighlighter.safeEndUndoGroup();
     }
 };
 
