@@ -218,6 +218,7 @@ $._smartHighlighter.scanParagraph = function (textLayer, comp, optText) {
                 isLastOfPara: lineObj.isLastOfPara,
                 isJustified: isJustified,
                 justifyType: justifyType,
+                isJustifyFullAll: isJustifyFullAll,
                 top: 0,
                 rightOffset: lineRightOffset,
                 leftOffset: lineLeftOffset,
@@ -267,6 +268,7 @@ $._smartHighlighter.scanParagraph = function (textLayer, comp, optText) {
             fullText: fullText,
             isJustified: isJustified,
             justifyType: justifyType,
+            isJustifyFullAll: isJustifyFullAll,
             justification: justification,
             fontSpaceW: fontSpaceW
         };

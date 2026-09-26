@@ -95,11 +95,99 @@ $._smartHighlighter.scanTargetBoxes = function (textLayer, comp, data) {
             var rtl_k = isCenter ? false : ((data.direction === "auto") ? (scan.isJustified ? (scan.justifyType === "right") : $._smartHighlighter.lineIsRTL(ld.text, fallbackRTL)) : (data.direction === "rtl"));
             var cStart = (typeof ld.charStart === "number") ? ld.charStart : 0;
             var cEnd = (typeof ld.charEnd === "number") ? ld.charEnd : (cStart + ld.text.length);
+
+            // ضمان اصطفاف عمودي مستقيم 100% لبدايات الأسطر (Flush Vertical Alignment for Start Side):
+            // في نمط الأسطر، يجب أن تصطف بدايات جميع الحاويات على خط عمودي واحد كالمسطرة دون أي تعرج ناتج عن هوامش الحروف
+            // بينما تظل نهايات الأسطر حرة وديناميكية وفقاً لطول وكلمات كل سطر
+            var boxWidth = ld.width;
+            var lOff = (typeof ld.leftOffset === "number") ? ld.leftOffset : 0;
+            var rOff = (typeof ld.rightOffset === "number") ? ld.rightOffset : 0;
+            var cOff = (typeof ld.centerOffset === "number") ? ld.centerOffset : 0;
+            var lineCOffsets = (ld.cOffsets && ld.cOffsets.length > 0) ? ld.cOffsets.slice(0) : [];
+            var lineWOffsets = (ld.wOffsets && ld.wOffsets.length > 0) ? ld.wOffsets.slice(0) : [];
+
+            if (!isCenter) {
+                if (scan.isJustified) {
+                    if (scan.isJustifyFullAll || !ld.isLastOfPara) {
+                        // أسطر كاملة الضبط: العرض يملأ الفقرة بالكامل، والبداية والنهاية خط مستقيم
+                        lOff = 0;
+                        rOff = 0;
+                        boxWidth = scan.fullW;
+                    } else if (scan.justifyType === "right" || rtl_k) {
+                        // السطر الأخير مضبوط لليمين: البداية (اليمين) مستقيمة كالمسطرة
+                        if (rOff > 0) {
+                            boxWidth = Math.round((boxWidth + rOff) * 10) / 10;
+                            if (lineCOffsets.length > 0) {
+                                for (var coR = 0; coR < lineCOffsets.length; coR++) {
+                                    lineCOffsets[coR] = Math.round((lineCOffsets[coR] + rOff) * 10) / 10;
+                                }
+                            }
+                            if (lineWOffsets.length > 0) {
+                                for (var woR = 0; woR < lineWOffsets.length; woR++) {
+                                    lineWOffsets[woR] = Math.round((lineWOffsets[woR] + rOff) * 10) / 10;
+                                }
+                            }
+                            rOff = 0;
+                        }
+                    } else if (scan.justifyType === "center") {
+                        // السطر الأخير موسط
+                    } else {
+                        // السطر الأخير مضبوط لليسار: البداية (اليسار) مستقيمة كالمسطرة
+                        if (lOff > 0) {
+                            boxWidth = Math.round((boxWidth + lOff) * 10) / 10;
+                            if (lineCOffsets.length > 0) {
+                                for (var coL = 0; coL < lineCOffsets.length; coL++) {
+                                    lineCOffsets[coL] = Math.round((lineCOffsets[coL] + lOff) * 10) / 10;
+                                }
+                            }
+                            if (lineWOffsets.length > 0) {
+                                for (var woL = 0; woL < lineWOffsets.length; woL++) {
+                                    lineWOffsets[woL] = Math.round((lineWOffsets[woL] + lOff) * 10) / 10;
+                                }
+                            }
+                            lOff = 0;
+                        }
+                    }
+                } else if (rtl_k) {
+                    // RTL (عربي): بداية الأسطر من جهة اليمين، تشكل خطاً عمودياً مستقيماً 100%
+                    if (rOff > 0) {
+                        boxWidth = Math.round((boxWidth + rOff) * 10) / 10;
+                        if (lineCOffsets.length > 0) {
+                            for (var coR2 = 0; coR2 < lineCOffsets.length; coR2++) {
+                                lineCOffsets[coR2] = Math.round((lineCOffsets[coR2] + rOff) * 10) / 10;
+                            }
+                        }
+                        if (lineWOffsets.length > 0) {
+                            for (var woR2 = 0; woR2 < lineWOffsets.length; woR2++) {
+                                lineWOffsets[woR2] = Math.round((lineWOffsets[woR2] + rOff) * 10) / 10;
+                            }
+                        }
+                        rOff = 0;
+                    }
+                } else {
+                    // LTR (لاتيني): بداية الأسطر من جهة اليسار، تشكل خطاً عمودياً مستقيماً 100%
+                    if (lOff > 0) {
+                        boxWidth = Math.round((boxWidth + lOff) * 10) / 10;
+                        if (lineCOffsets.length > 0) {
+                            for (var coL2 = 0; coL2 < lineCOffsets.length; coL2++) {
+                                lineCOffsets[coL2] = Math.round((lineCOffsets[coL2] + lOff) * 10) / 10;
+                            }
+                        }
+                        if (lineWOffsets.length > 0) {
+                            for (var woL2 = 0; woL2 < lineWOffsets.length; woL2++) {
+                                lineWOffsets[woL2] = Math.round((lineWOffsets[woL2] + lOff) * 10) / 10;
+                            }
+                        }
+                        lOff = 0;
+                    }
+                }
+            }
+
             boxesData.push({
                 boxIndex: k,
                 lineIndex: k,
                 text: ld.text,
-                width: ld.width,
+                width: boxWidth,
                 height: ld.height,
                 lineH: ld.height,
                 lineTop: ld.top,
@@ -108,14 +196,14 @@ $._smartHighlighter.scanTargetBoxes = function (textLayer, comp, data) {
                 totalChars: scan.fullText.length,
                 isWord: false,
                 wordOffset: 0,
-                rightOffset: (typeof ld.rightOffset === "number") ? ld.rightOffset : 0,
-                leftOffset: (typeof ld.leftOffset === "number") ? ld.leftOffset : 0,
-                centerOffset: (typeof ld.centerOffset === "number") ? ld.centerOffset : 0,
-                lineWidth: ld.width,
+                rightOffset: rOff,
+                leftOffset: lOff,
+                centerOffset: cOff,
+                lineWidth: boxWidth,
                 rtl_k: rtl_k,
                 name: textLayer.name + " - [Line " + (k + 1) + "]",
-                cOffsets: ld.cOffsets || [],
-                wOffsets: ld.wOffsets || [],
+                cOffsets: lineCOffsets,
+                wOffsets: lineWOffsets,
                 wordStart: (typeof ld.wordStart === "number") ? ld.wordStart : 0,
                 wordEnd: (typeof ld.wordEnd === "number") ? ld.wordEnd : 0
             });
